@@ -1,0 +1,28 @@
+# Raw sequencing data
+data/raw/
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.sra
+
+# Large databases / temporary data
+databases/
+tmp/
+cache/
+
+# R / Python local files
+.Rhistory
+.RData
+__pycache__/
+.ipynb_checkpoints/
+*.code-workspace
+
+# Secrets
+.env
+
+# Private research notes
+docs/paper_design_and_statistical_notes.md
+
+# Local publication and supplementary source files
+references/
