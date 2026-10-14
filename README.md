@@ -2,7 +2,7 @@
 
 This repository independently reconstructs and reanalyses the public supplementary data from Lv et al. (2026), focusing on taxonomic restructuring, sample-level heterogeneity, functional-profile sensitivity, and reproducibility.
 
-> **[View the full interactive report →](report/alfalfa_salinity_metagenome_reanalysis.html)**
+> **[View the full interactive report →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/)**
 
 [BioProject PRJNA1399466](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1399466) · [Publication DOI](https://doi.org/10.3389/fpls.2026.1753229)
 
