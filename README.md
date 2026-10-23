@@ -1,41 +1,39 @@
 # Salinity-associated restructuring of the alfalfa root-zone microbiome
 
-How does salinity relate to the alfalfa root-zone microbiome—and how much of a published metagenomic profile can be reconstructed from public data? This project examines both questions through complementary reanalyses of Lv et al. (2026): all nine released sample-level profiles and independent raw-read reconstructions of CK-1 and MS-1.
+A reproducible reanalysis of the alfalfa root-zone shotgun metagenomics dataset published by Lv et al. (2026), combining ecological patterns across **nine samples** with independent raw-read reconstruction of **CK-1 and MS-1**.
 
-**[Explore Report 1 · nine-sample ecological reanalysis →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_salinity_metagenome_reanalysis.html)**
+**🌐 [Explore the project website →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/)**
 
-**[Explore Report 2 · CK-1 and MS-1 raw-read reconstruction →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_ck1_raw_read_reconstruction.html)**
+**Research reports:** [Report 1 · Nine-sample ecological reanalysis](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_salinity_metagenome_reanalysis.html) · [Report 2 · Raw-read reconstruction](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_ck1_raw_read_reconstruction.html)
 
-[BioProject PRJNA1399466](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1399466) · [Publication DOI](https://doi.org/10.3389/fpls.2026.1753229)
+[Original publication](https://doi.org/10.3389/fpls.2026.1753229) · [NCBI BioProject PRJNA1399466](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1399466)
 
-<a href="results/figures/project_graphical_abstract.svg"><img src="results/figures/project_graphical_abstract.svg" alt="Graphical abstract showing the nine-sample published-data reanalysis alongside CK-1 and MS-1 raw-read reconstruction, their workflows, principal findings and interpretation limits" width="100%"></a>
+[![Graphical abstract summarizing the published-data reanalysis and independent raw-read reconstruction](results/figures/project_graphical_abstract.svg)](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/)
 
-## Two reports, one public dataset
+## Two complementary analyses
 
-| Report 1 · published data | Report 2 · deposited reads |
+| Report 1 — Ecological reanalysis | Report 2 — Raw-read reproducibility |
 |---|---|
-| Nine published sample profiles (CK, LS and MS; three per treatment): community composition, diversity and functional pathways. | CK-1 and MS-1 reconstructed from SRA reads through QC, host depletion and Kraken2/Bracken profiling; compared descriptively with published profiles. |
+| **Nine published sample profiles:** three each from CK, LS and MS treatments. Genus composition, diversity and 30 selected functional pathways. | **Two independently reconstructed metagenomes:** CK-1 and MS-1, processed from SRA reads through quality control, host depletion, Kraken2 and Bracken. Published and reconstructed genus profiles are compared within each sample. |
 
-The sampled material was **root-zone soil**, not a strictly isolated rhizosphere fraction.
-
-## Findings at a glance
+## Key findings
 
 | Genus-level community structure | Relative functional structure | Non-host fragments classified |
 |:---:|:---:|:---:|
 | **R² = 0.775** | **R² = 0.822** | **5.17–5.42%** |
-| Nine-sample Bray–Curtis PERMANOVA | Nine-sample, composition-normalized 30-pathway PERMANOVA | CK-1 and MS-1, Kraken2 PlusPF-8 |
+| Nine-sample Bray–Curtis PERMANOVA | Composition-normalized 30-pathway PERMANOVA | CK-1 and MS-1; Kraken2 PlusPF-8 |
 
-In the functional analysis, raw PCoA1 tracked summed selected-pathway abundance (**r = −0.9988**); the normalized result above describes relative pathway structure.
+Treatment-associated structure emerged in both published matrices, while independently reconstructed genus profiles differed substantially from their corresponding published profiles. The raw functional ordination was strongly related to total selected-pathway abundance (**r = −0.9988**); the normalized analysis above describes *relative* pathway structure.
 
-## Reproducibility
+## Reproduce the analyses
 
-The published-data analyses use **R 4.3.3** and the synchronized [`renv.lock`](renv.lock):
+**Report 1 — R:** Restore dependencies from [`renv.lock`](renv.lock) (R 4.3.3):
 
 ```r
 renv::restore()
 ```
 
-The raw-read workflow keeps bioinformatics tools in [`environment.yml`](environment.yml) (`alfalfa-meta`) and Snakemake plus validation libraries in [`workflow/environment.yml`](workflow/environment.yml) (`alfalfa-snakemake`). With `alfalfa-meta` active, select a sample from the [canonical manifest](data/metadata/sample_manifest.tsv):
+**Report 2 — Snakemake:** With the bioinformatics environment defined in [`environment.yml`](environment.yml) active, run a selected sample using the separate Snakemake environment in [`workflow/environment.yml`](workflow/environment.yml):
 
 ```bash
 "$(conda info --base)/envs/alfalfa-snakemake/bin/snakemake" \
@@ -44,11 +42,10 @@ The raw-read workflow keeps bioinformatics tools in [`environment.yml`](environm
   --config 'active_samples=["MS-1"]'
 ```
 
-If Conda environments are installed outside the base `envs/` directory, substitute the path to `alfalfa-snakemake/bin/snakemake`. The [workflow guide](workflow/README.md) covers setup and sample selection. For optional live monitoring, run `snakesee watch .` in a separate terminal with `alfalfa-snakemake` active.
+See the [workflow guide](workflow/README.md) for setup, available samples and validation. Optional terminal monitoring: `snakesee watch .` from the `alfalfa-snakemake` environment.
 
-## Explore the repository
+## Data, code and limitations
 
-[`analysis/`](analysis/) and [`data/processed/`](data/processed/) support Report 1; [`workflow/`](workflow/), [`scripts/`](scripts/) and [`results/`](results/) contain the raw-read workflow and outputs. The [sample manifest](data/metadata/sample_manifest.tsv) links samples to public accessions.
+[`analysis/`](analysis/) and [`data/processed/`](data/processed/) support Report 1; [`workflow/`](workflow/), [`scripts/`](scripts/) and [`results/`](results/) contain Report 2's workflow and reproducibility outputs. Sample accessions are listed in the [manifest](data/metadata/sample_manifest.tsv).
 
-Inference is limited by three sequenced samples per treatment in Report 1 and one reconstructed sample per condition in Report 2. Published abundance units and nitrogen-function mappings remain incomplete; most non-host fragments were unclassified with the workstation-scale Kraken2 database. Supporting audits: [dataset](docs/dataset_reconnaissance.md), [supplementary files](docs/supplementary_data_audit.md), [processed inputs](docs/processed_data_validation.md) and [nitrogen identifiers](docs/nitrogen_mapping_audit.md).
-
+The source material is **root-zone soil**, not a separately isolated rhizosphere fraction. Report 1 has three samples per treatment; Report 2 reconstructs one sample per condition and does not establish a salinity treatment effect. Published abundance units and some nitrogen-function mappings remain unresolved, and most non-host fragments were unclassified with PlusPF-8. See the [dataset audit](docs/dataset_reconnaissance.md), [supplementary-data audit](docs/supplementary_data_audit.md), [processed-data validation](docs/processed_data_validation.md) and [nitrogen mapping audit](docs/nitrogen_mapping_audit.md).
