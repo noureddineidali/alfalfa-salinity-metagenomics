@@ -1,6 +1,7 @@
 library(tidyverse)
 library(vegan)
 library(here)
+source(here("analysis", "output_paths.R"), local = TRUE)
 
 # ------------------------------------------------------------
 # 1. Import abundance matrix
@@ -239,30 +240,15 @@ p_alpha_pub
 # 7. Save figure
 # ------------------------------------------------------------
 
-# ggsave(
-#   filename = here(
-#     "results",
-#     "figures",
-#     "alpha_diversity_genus_level.pdf"
-#   ),
-#   plot = p_alpha_pub,
-#   width = 10,
-#   height = 4.5,
-#   units = "in"
-# )
 
-# ggsave(
-#   filename = here(
-#     "results",
-#     "figures",
-#     "alpha_diversity_genus_level.png"
-#   ),
-#   plot = p_alpha_pub,
-#   width = 10,
-#   height = 4.5,
-#   units = "in",
-#   dpi = 600
-# )
+ggsave(
+  filename = result_path("figures", "alpha_diversity_genus_level.png"),
+  plot = p_alpha_pub,
+  width = 10,
+  height = 4.5,
+  units = "in",
+  dpi = 600
+)
 
 # ------------------------------------------------------------
 # Save genus-level alpha-diversity results
@@ -282,13 +268,9 @@ alpha_results <- alpha_diversity |>
     inverse_simpson
   )
 
-# write_tsv(
-#   alpha_results,
-#   here(
-#     "results",
-#     "tables",
-#     "genus_alpha_diversity.tsv"
-#   )
-# )
+write_tsv(
+  alpha_results,
+  result_path("tables", "genus_alpha_diversity.tsv")
+)
 
 alpha_results

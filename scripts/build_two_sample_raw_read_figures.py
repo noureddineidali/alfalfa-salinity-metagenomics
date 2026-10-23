@@ -67,7 +67,7 @@ def published(path):
     return result
 
 
-ck_tax, ck_name = bracken(ROOT / "analysis/raw_read_comparison/CK1_pluspf8_c0_genus.bracken")
+ck_tax, ck_name = bracken(ROOT / "results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken")
 ms_tax, ms_name = bracken(ROOT / "results/taxonomy/raw-read-workflow/MS-1/MS-1_pluspf8_c0_genus.bracken")
 pub = published(ROOT / "data/processed/genus_abundance.tsv")
 

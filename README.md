@@ -33,6 +33,8 @@ Treatment-associated structure emerged in both published matrices, while indepen
 renv::restore()
 ```
 
+Start from the validated, source-derived matrices in [`data/processed/`](data/processed/) and run the numbered R scripts in order. See [input provenance and output regeneration](docs/processed_data_validation.md#regenerating-analytical-outputs).
+
 **Report 2 — Snakemake:** With the bioinformatics environment defined in [`environment.yml`](environment.yml) active, run a selected sample using the separate Snakemake environment in [`workflow/environment.yml`](workflow/environment.yml):
 
 ```bash

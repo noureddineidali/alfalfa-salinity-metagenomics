@@ -27,8 +27,6 @@ PUBLIC_FILES = (
     "results/workflow/ms1_raw_read_workflow.dot",
     "results/workflow/raw_read_rule_graph.svg",
     "results/workflow/raw_read_rule_graph.dot",
-    "results/workflow/ms1_scientific_overview.svg",
-    "results/workflow/ms1_scientific_overview.dot",
     "data/metadata/sample_manifest.tsv",
     "data/processed/genus_abundance.tsv",
 )

@@ -50,3 +50,5 @@ The mapping output preserves unresolved rows rather than substituting similarity
 
 - Mapping table: `data/processed/nitrogen_dbid_mapping.tsv`
 - Reproducible resolver: `scripts/resolve_nitrogen_dbids.py`
+
+The resolver requires the original `table 6.xlsx` at `references/lv_2026/table 6.xlsx`, internet access to the named services and Python with `openpyxl` (declared in `workflow/environment.yml`). Run it from the project root with the `alfalfa-snakemake` Python interpreter. It refreshes the mapping TSV and this audit; live database records can change, so the deposited mapping remains the reference for the published findings. Ordinary analytical reproduction uses the validated processed inputs and does not require repeating these remote queries.

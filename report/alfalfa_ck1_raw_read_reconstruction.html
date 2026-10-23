@@ -3625,12 +3625,12 @@ Bracken command
 <summary>
 Comparison command and output package
 </summary>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="va">MPLCONFIGDIR</span><span class="op">=</span>/tmp <span class="ex">/home/noureddine/miniconda3/bin/python</span> <span class="dt">\</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  compare_ck1_profiles.py <span class="dt">\</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--published</span> ck1_published_table4_extracted.csv <span class="dt">\</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bracken</span> CK1_pluspf8_c0_genus.bracken <span class="dt">\</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--outdir</span> .</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-This historical command was run from the former root-level <code>CK1_comparison/</code> directory. The intact package now resides at <a href="../analysis/raw_read_comparison/README.md"><code>analysis/raw_read_comparison/</code></a>; the same relative command can be run there. Its numerical metrics and Markdown narrative were revalidated after relocation.
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">$(</span><span class="ex">conda</span> info <span class="at">--base</span><span class="va">)</span><span class="st">/envs/alfalfa-snakemake/bin/python&quot;</span> <span class="dt">\</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  analysis/raw_read_comparison/compare_ck1_profiles.py <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--published</span> data/processed/genus_abundance.tsv <span class="dt">\</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bracken</span> results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken <span class="dt">\</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--outdir</span> /tmp/ck1-comparison</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+Run this command from the project root. The <a href="../analysis/raw_read_comparison/README.md">comparison package</a> contains the validated concordance metrics and tables, with details of the historical workbook-label representation. Actual executed commands remain in the <a href="../docs/raw_read_provenance.tsv">provenance record</a>.
 </details>
 </section>
 <section id="computational-reproducibility-and-interpretation" class="level2" data-number="12">
