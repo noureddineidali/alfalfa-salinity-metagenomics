@@ -1,6 +1,7 @@
 library(tidyverse)
 library(here)
 library(vegan)
+source(here("analysis", "output_paths.R"), local = TRUE)
 
 # ------------------------------------------------------------
 # 1. Import validated pathway abundance matrix
@@ -131,115 +132,7 @@ pathway_summary
 
 
 # ------------------------------------------------------------
-# 6. Row-wise z-score for visualization only
-# ------------------------------------------------------------
-
-pathway_z <- pathway_long |>
-  group_by(pathway) |>
-  mutate(
-    z_score = as.numeric(
-      scale(abundance)
-    )
-  ) |>
-  ungroup()
-
-pathway_z
-
-pathway_z |>
-  group_by(pathway) |>
-  summarise(
-    mean_z = mean(z_score),
-    sd_z = sd(z_score),
-    .groups = "drop"
-  )
-
-
-pathway_order <- pathways$pathway
-
-pathway_z <- pathway_z |>
-  mutate(
-    sample = factor(
-      sample,
-      levels = c(
-        "CK-1",
-        "CK-2",
-        "CK-3",
-        "LS-1",
-        "LS-2",
-        "LS-3",
-        "MS-1",
-        "MS-2",
-        "MS-3"
-      )
-    ),
-
-    pathway = factor(
-      pathway,
-      levels = rev(pathway_order)
-    )
-  )
-
-p_pathway_heatmap <- ggplot(
-  pathway_z,
-  aes(
-    x = sample,
-    y = pathway,
-    fill = z_score
-  )
-) +
-
-  geom_tile(
-    colour = "white",
-    linewidth = 0.35
-  ) +
-
-  geom_vline(
-    xintercept = c(3.5, 6.5),
-    linetype = "dashed",
-    colour = "grey45",
-    linewidth = 0.45
-  ) +
-
-  scale_fill_gradient2(
-    low = "#2166AC",
-    mid = "white",
-    high = "#B2182B",
-    midpoint = 0,
-    name = "Row z-score"
-  ) +
-
-  labs(
-    x = NULL,
-    y = NULL
-  ) +
-
-  theme_minimal(base_size = 11) +
-
-  theme(
-    panel.grid = element_blank(),
-
-    axis.text.x = element_text(
-      angle = 45,
-      hjust = 1,
-      colour = "black"
-    ),
-
-    axis.text.y = element_text(
-      colour = "black",
-      size = 8.5
-    ),
-
-    axis.ticks = element_blank(),
-
-    legend.title = element_text(
-      size = 10
-    )
-  )
-
-p_pathway_heatmap
-
-# ------------------------------------------------------------
-# 7. Kruskal-Wallis tests for each pathway
+# 6. Kruskal-Wallis tests for each pathway
 # ------------------------------------------------------------
 
 kw_results <- pathway_long |>
@@ -293,11 +186,7 @@ kw_results_full
 
 write_tsv(
   kw_results_full,
-  here(
-    "results",
-    "tables",
-    "pathway_kruskal_wallis_results.tsv"
-  )
+  result_path("tables", "pathway_kruskal_wallis_results.tsv")
 )
 
 kw_results_full <- kw_results_full |>
@@ -323,7 +212,7 @@ kw_results_full |>
 
 
 # ------------------------------------------------------------
-# 8. Functional-profile community matrix
+# 7. Functional-profile community matrix
 # ------------------------------------------------------------
 
 functional_matrix <- pathways |>
@@ -337,7 +226,7 @@ rowSums(functional_matrix)
 functional_matrix[, 1:5]
 
 # ------------------------------------------------------------
-# 9. Bray-Curtis dissimilarity of functional profiles
+# 8. Bray-Curtis dissimilarity of functional profiles
 # ------------------------------------------------------------
 
 functional_bray <- vegdist(
@@ -353,7 +242,7 @@ round(
 )
 
 # ------------------------------------------------------------
-# 10. PCoA of functional Bray-Curtis distances
+# 9. PCoA of functional Bray-Curtis distances
 # ------------------------------------------------------------
 
 functional_pcoa <- wcmdscale(
@@ -418,75 +307,7 @@ functional_pcoa_scores
 
 
 # ------------------------------------------------------------
-# 11. Diagnostic functional PCoA
-# ------------------------------------------------------------
-
-treatment_cols <- c(
-  "CK" = "#0072B2",
-  "LS" = "#E69F00",
-  "MS" = "#009E73"
-)
-
-p_functional_pcoa <- ggplot(
-  functional_pcoa_scores,
-  aes(
-    x = PCoA1,
-    y = PCoA2,
-    colour = treatment
-  )
-) +
-
-  geom_hline(
-    yintercept = 0,
-    linetype = "dashed",
-    colour = "grey70"
-  ) +
-
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    colour = "grey70"
-  ) +
-
-  geom_point(
-    size = 4
-  ) +
-
-  geom_text(
-    aes(label = sample),
-    nudge_y = 0.0005,
-    size = 3.5,
-    show.legend = FALSE
-  ) +
-
-  scale_colour_manual(
-    values = treatment_cols
-  ) +
-
-  labs(
-    x = paste0(
-      "PCoA1 (",
-      round(functional_variance[1], 1),
-      "%)"
-    ),
-    y = paste0(
-      "PCoA2 (",
-      round(functional_variance[2], 1),
-      "%)"
-    ),
-    colour = "Treatment"
-  ) +
-
-  coord_equal() +
-
-  theme_classic(
-    base_size = 12
-  )
-
-p_functional_pcoa
-
-# ------------------------------------------------------------
-# 12. Metadata
+# 10. Metadata
 # ------------------------------------------------------------
 
 functional_metadata <- tibble(
@@ -521,7 +342,7 @@ identical(
 
 
 # ------------------------------------------------------------
-# 13. PERMANOVA
+# 11. PERMANOVA
 # ------------------------------------------------------------
 
 set.seed(1998)
@@ -535,7 +356,7 @@ functional_permanova <- adonis2(
 functional_permanova
 
 # ------------------------------------------------------------
-# 14. PERMDISP
+# 12. PERMDISP
 # ------------------------------------------------------------
 
 functional_dispersion <- betadisper(
@@ -583,11 +404,7 @@ functional_dispersion_summary
 
 write_tsv(
   functional_pcoa_scores,
-  here(
-    "results",
-    "tables",
-    "functional_pcoa_scores.tsv"
-  )
+  result_path("tables", "functional_pcoa_scores.tsv")
 )
 
 write_tsv(
@@ -598,15 +415,11 @@ write_tsv(
     ),
     variance_explained = functional_variance[1:2]
   ),
-  here(
-    "results",
-    "tables",
-    "functional_pcoa_variance.tsv"
-  )
+  result_path("tables", "functional_pcoa_variance.tsv")
 )
 
 # ------------------------------------------------------------
-# 15. Is PCoA1 associated with total selected-pathway abundance?
+# 13. Is PCoA1 associated with total selected-pathway abundance?
 # ------------------------------------------------------------
 
 functional_pcoa_check <- functional_pcoa_scores |>
@@ -636,7 +449,7 @@ cor(
 )
 
 # ------------------------------------------------------------
-# 16. Composition-only sensitivity analysis
+# 14. Composition-only sensitivity analysis
 # ------------------------------------------------------------
 
 functional_composition <- sweep(
@@ -703,7 +516,7 @@ permutest(
 )
 
 # ------------------------------------------------------------
-# 17. Publication-ready PCoA of normalized functional profiles
+# 15. Publication-ready PCoA of normalized functional profiles
 # ------------------------------------------------------------
 
 # Extract sample coordinates
@@ -871,23 +684,7 @@ p_functional_comp_pub
 
 
 ggsave(
-  here(
-    "results",
-    "figures",
-    "normalized_functional_pathway_pcoa.pdf"
-  ),
-  p_functional_comp_pub,
-  width = 7.5,
-  height = 6,
-  units = "in"
-)
-
-ggsave(
-  here(
-    "results",
-    "figures",
-    "normalized_functional_pathway_pcoa.png"
-  ),
+  result_path("figures", "normalized_functional_pathway_pcoa.png"),
   p_functional_comp_pub,
   width = 7.5,
   height = 6,

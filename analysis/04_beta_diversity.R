@@ -1,6 +1,7 @@
 library(tidyverse)
 library(vegan)
 library(here)
+source(here("analysis", "output_paths.R"), local = TRUE)
 
 # ------------------------------------------------------------
 # 1. Import genus-level abundance matrix
@@ -73,14 +74,6 @@ round(bray_matrix, 4)
 # 7. Bray-Curtis heatmap
 # ------------------------------------------------------------
 
-bray_long <- as.data.frame(bray_matrix) |>
-  rownames_to_column("sample1") |>
-  pivot_longer(
-    cols = -sample1,
-    names_to = "sample2",
-    values_to = "bray_curtis"
-  )
-
 sample_order <- c(
   "CK-1",
   "CK-2",
@@ -92,74 +85,6 @@ sample_order <- c(
   "MS-2",
   "MS-3"
 )
-
-bray_long <- bray_long |>
-  mutate(
-    sample1 = factor(
-      sample1,
-      levels = rev(sample_order)
-    ),
-    sample2 = factor(
-      sample2,
-      levels = sample_order
-    )
-  )
-
-p_bray_heatmap <- ggplot(
-  bray_long,
-  aes(
-    x = sample2,
-    y = sample1,
-    fill = bray_curtis
-  )
-) +
-  geom_tile(
-    colour = "white",
-    linewidth = 0.6
-  ) +
-  geom_text(
-    aes(
-      label = sprintf("%.3f", bray_curtis)
-    ),
-    size = 3
-  ) +
-  scale_fill_gradient(
-    low = "white",
-    high = "#2166AC",
-    name = "Bray–Curtis\n dissimilarity"
-  ) +
-  geom_vline(
-    xintercept = c(3.5, 6.5),
-    linetype = "dashed",
-    colour = "grey30"
-  ) +
-  geom_hline(
-    yintercept = c(3.5, 6.5),
-    linetype = "dashed",
-    colour = "grey30"
-  ) +
-  labs(
-    x = NULL,
-    y = NULL
-  ) +
-  coord_fixed() +
-  theme_classic(base_size = 11) +
-  theme(
-    axis.text.x = element_text(
-      angle = 45,
-      hjust = 1,
-      colour = "black"
-    ),
-    axis.text.y = element_text(
-      colour = "black"
-    ),
-    axis.ticks = element_blank(),
-    axis.line = element_blank(),
-    legend.title = element_text(size = 10)
-  )
-
-p_bray_heatmap
-
 
 # ------------------------------------------------------------
 # 8. Unique pairwise comparisons
@@ -189,101 +114,6 @@ distance_pairs <- as.data.frame(
       treatment1 == "LS" & treatment2 == "LS" ~ "Within LS",
       treatment1 == "MS" & treatment2 == "MS" ~ "Within MS",
 
-      treatment1 %in% c("CK", "LS") & treatment2 %in% c("CK", "LS") ~ "CK–LS",
-
-      treatment1 %in% c("CK", "MS") & treatment2 %in% c("CK", "MS") ~ "CK–MS",
-
-      treatment1 %in% c("LS", "MS") & treatment2 %in% c("LS", "MS") ~ "LS–MS"
-    ),
-
-    comparison = factor(
-      comparison,
-      levels = c(
-        "Within CK",
-        "Within LS",
-        "Within MS",
-        "CK–LS",
-        "CK–MS",
-        "LS–MS"
-      )
-    )
-  )
-
-
-distance_pairs |>
-  count(comparison)
-
-distance_pairs |>
-  group_by(comparison) |>
-  summarise(
-    mean = mean(bray_curtis),
-    sd = sd(bray_curtis),
-    .groups = "drop"
-  )
-
-
-p_bray_groups <- ggplot(
-  distance_pairs,
-  aes(
-    x = comparison,
-    y = bray_curtis
-  )
-) +
-  geom_jitter(
-    width = 0.10,
-    height = 0,
-    size = 2.3,
-    alpha = 0.75
-  ) +
-  stat_summary(
-    fun = mean,
-    geom = "point",
-    shape = 18,
-    size = 4
-  ) +
-  stat_summary(
-    fun.data = function(x) {
-      data.frame(
-        y = mean(x),
-        ymin = mean(x) - sd(x),
-        ymax = mean(x) + sd(x)
-      )
-    },
-    geom = "errorbar",
-    width = 0.16,
-    linewidth = 0.6
-  ) +
-  labs(
-    x = NULL,
-    y = "Bray–Curtis dissimilarity"
-  ) +
-  theme_classic(base_size = 11) +
-  theme(
-    axis.text.x = element_text(
-      angle = 35,
-      hjust = 1,
-      colour = "black"
-    ),
-    axis.text.y = element_text(
-      colour = "black"
-    )
-  )
-
-p_bray_groups
-
-
-# ------------------------------------------------------------
-# Publication-ready pairwise Bray-Curtis comparison plot
-# ------------------------------------------------------------
-
-# Standardize comparison labels
-distance_pairs <- distance_pairs |>
-  mutate(
-    comparison = case_when(
-      treatment1 == "CK" & treatment2 == "CK" ~ "Within CK",
-      treatment1 == "LS" & treatment2 == "LS" ~ "Within LS",
-      treatment1 == "MS" & treatment2 == "MS" ~ "Within MS",
-
       treatment1 %in% c("CK", "LS") & treatment2 %in% c("CK", "LS") ~ "CK-LS",
 
       treatment1 %in% c("CK", "MS") & treatment2 %in% c("CK", "MS") ~ "CK-MS",
@@ -305,10 +135,21 @@ distance_pairs <- distance_pairs |>
   )
 
 
-# Check that nothing became NA
 distance_pairs |>
-  count(comparison, .drop = FALSE)
+  count(comparison)
 
+distance_pairs |>
+  group_by(comparison) |>
+  summarise(
+    mean = mean(bray_curtis),
+    sd = sd(bray_curtis),
+    .groups = "drop"
+  )
+
+
+# ------------------------------------------------------------
+# Publication-ready pairwise Bray-Curtis comparison plot
+# ------------------------------------------------------------
 
 # ------------------------------------------------------------
 # Mean ± SD for each comparison category
@@ -572,55 +413,25 @@ p_bray_heatmap_pub <- ggplot(
 
 p_bray_heatmap_pub
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "bray_curtis_pairwise_groups.pdf"
-#   ),
-#   p_bray_groups_pub,
-#   width = 8.5,
-#   height = 5.5,
-#   units = "in"
-# )
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "bray_curtis_pairwise_groups.png"
-#   ),
-#   p_bray_groups_pub,
-#   width = 8.5,
-#   height = 5.5,
-#   units = "in",
-#   dpi = 600
-# )
+ggsave(
+  result_path("figures", "bray_curtis_pairwise_groups.png"),
+  p_bray_groups_pub,
+  width = 8.5,
+  height = 5.5,
+  units = "in",
+  dpi = 600
+)
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "bray_curtis_heatmap.pdf"
-#   ),
-#   p_bray_heatmap_pub,
-#   width = 7.5,
-#   height = 6.5,
-#   units = "in"
-# )
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "bray_curtis_heatmap.png"
-#   ),
-#   p_bray_heatmap_pub,
-#   width = 7.5,
-#   height = 6.5,
-#   units = "in",
-#   dpi = 600
-# )
+ggsave(
+  result_path("figures", "bray_curtis_heatmap.png"),
+  p_bray_heatmap_pub,
+  width = 7.5,
+  height = 6.5,
+  units = "in",
+  dpi = 600
+)
 
 # ------------------------------------------------------------
 # 9. Principal Coordinates Analysis (PCoA)
@@ -815,30 +626,15 @@ p_pcoa_pub <- ggplot(
 
 p_pcoa_pub
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "genus_bray_curtis_pcoa.pdf"
-#   ),
-#   p_pcoa_pub,
-#   width = 7.5,
-#   height = 6,
-#   units = "in"
-# )
 
-# ggsave(
-#   here(
-#     "results",
-#     "figures",
-#     "genus_bray_curtis_pcoa.png"
-#   ),
-#   p_pcoa_pub,
-#   width = 7.5,
-#   height = 6,
-#   units = "in",
-#   dpi = 600
-# )
+ggsave(
+  result_path("figures", "genus_bray_curtis_pcoa.png"),
+  p_pcoa_pub,
+  width = 7.5,
+  height = 6,
+  units = "in",
+  dpi = 600
+)
 
 # ------------------------------------------------------------
 # 12. Sample metadata for multivariate tests
@@ -1029,23 +825,15 @@ pairwise_permanova
 # Export PCoA results for downstream analyses
 # ------------------------------------------------------------
 
-# write_tsv(
-#   pcoa_scores,
-#   here(
-#     "results",
-#     "tables",
-#     "pcoa_scores.tsv"
-#   )
-# )
+write_tsv(
+  pcoa_scores,
+  result_path("tables", "pcoa_scores.tsv")
+)
 
-# write_tsv(
-#   tibble(
-#     axis = c("PCoA1", "PCoA2"),
-#     variance_explained = variance_explained[1:2]
-#   ),
-#   here(
-#     "results",
-#     "tables",
-#     "pcoa_variance_explained.tsv"
-#   )
-# )
+write_tsv(
+  tibble(
+    axis = c("PCoA1", "PCoA2"),
+    variance_explained = variance_explained[1:2]
+  ),
+  result_path("tables", "pcoa_variance_explained.tsv")
+)

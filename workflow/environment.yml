@@ -12,4 +12,5 @@ dependencies:
   - numpy
   - scipy
   - matplotlib-base
+  - openpyxl
   - graphviz

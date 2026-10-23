@@ -481,14 +481,14 @@ The original workbook also contains 12 genus-label cells converted to Excel date
 <summary>Comparison command and output package</summary>
 
 ```bash
-MPLCONFIGDIR=/tmp /home/noureddine/miniconda3/bin/python \
-  compare_ck1_profiles.py \
-  --published ck1_published_table4_extracted.csv \
-  --bracken CK1_pluspf8_c0_genus.bracken \
-  --outdir .
+"$(conda info --base)/envs/alfalfa-snakemake/bin/python" \
+  analysis/raw_read_comparison/compare_ck1_profiles.py \
+  --published data/processed/genus_abundance.tsv \
+  --bracken results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken \
+  --outdir /tmp/ck1-comparison
 ```
 
-This historical command was run from the former root-level `CK1_comparison/` directory. The intact package now resides at [`analysis/raw_read_comparison/`](../analysis/raw_read_comparison/README.md); the same relative command can be run there. Its numerical metrics and Markdown narrative were revalidated after relocation.
+Run this command from the project root. The [comparison package](../analysis/raw_read_comparison/README.md) contains the validated concordance metrics and tables, with details of the historical workbook-label representation. Actual executed commands remain in the [provenance record](../docs/raw_read_provenance.tsv).
 </details>
 
 ## Computational reproducibility and interpretation

@@ -58,7 +58,7 @@ The BioProject record did not expose a separately deposited metagenome assembly,
 
 ## 6. Metadata limitations and inconsistencies
 
-Several limitations should be retained explicitly in any downstream sample sheet or analysis record.
+The public metadata leave the following limitations unresolved.
 
 - Treatment identity, salt composition and numerical salinity are not encoded as dedicated BioSample attributes. Treatment assignment is conveyed by the CK, LS and MS sample names and documented in the publication.
 - BioSample does not contain per-sample soil chemistry or plant-trait measurements.
@@ -71,18 +71,9 @@ Several limitations should be retained explicitly in any downstream sample sheet
 - ENA’s `read_count` values for the available runs correspond to NCBI paired spots rather than to the doubled number of individual reads. Counts should therefore be labelled carefully.
 - The BioProject-level archive size and the sum of run-level NCBI sizes differ. This likely reflects differing archive representations or record states, but the discrepancy has not been resolved.
 
-## 7. Methodological questions identified from metadata
+## 7. Scope of the completed analyses
 
-The metadata establish the dataset’s scope but do not determine an analysis pipeline. The questions below framed the subsequent work; the two reports document which choices were implemented for the nine-sample supplementary-data analysis and the CK-1/MS-1 raw-read reconstruction.
-
-- Whether to analyze the complete dataset or a documented subsample, considering both scientific objectives and computational resources.
-- Whether sequence acquisition should use NCBI SRA archives or ENA paired FASTQ files, and how the missing ENA FASTQ representation for MS-1 should be handled and validated.
-- Which read-quality criteria, adapter-removal procedure, host-depletion reference and contamination controls should be applied.
-- Whether the principal analysis should be read-based, assembly-based, or should compare complementary read- and assembly-based results.
-- Which taxonomic profiling strategy and reference database are appropriate for the project aims.
-- Which functional profiling strategy, databases and reporting levels should be used.
-- How statistical comparisons should account for only three biological replicates per treatment, multiple testing and the distinction between confirmatory and exploratory results.
-- Whether and how the soil chemistry and plant measurements in the publication supplements should be incorporated as covariates or associated response variables.
+[Report 1](../report/alfalfa_salinity_metagenome_reanalysis.html) analyzes the nine source-derived sample profiles, their measured environmental context and 30 selected functional pathways. [Report 2](../report/alfalfa_ck1_raw_read_reconstruction.html) reconstructs CK-1 and MS-1 from NCBI SRA archives through QC, host depletion and Kraken2/Bracken taxonomic profiling. The two-sample comparison is descriptive; treatment-level inference remains limited to the supplementary-data analysis with three samples per treatment.
 
 Neither report reconstructs the raw reads for all nine samples or a complete functional gene catalogue.
 

@@ -75,3 +75,19 @@ docs/interview_talking_points.md
 
 # Local publication and supplementary source files
 references/
+
+# Local review archive for files removed from the public project
+/_CODEX_REVIEW_FOR_DELETION/
+
+# Redundant progress-only logs and QC exports
+/logs/raw-read-pilot/04_fastqc_ck1_raw.log
+/logs/raw-read-pilot/CK1_pluspf16_c0.kraken2.log
+/logs/raw-read-workflow/MS-1/fastqc_raw.log
+/logs/raw-read-workflow/MS-1/fastqc_clean.log
+/logs/raw-read-workflow/MS-1/seqkit_raw.log
+/logs/raw-read-workflow/MS-1/seqkit_clean.log
+/logs/raw-read-workflow/MS-1/seqkit_nonhost.log
+**/*_multiqc_data/multiqc_software_versions.txt
+**/*_multiqc_data/multiqc_fastp.txt
+/results/qc/raw-read-workflow/MS-1/raw/*.html
+/results/qc/raw-read-workflow/MS-1/clean/*.html

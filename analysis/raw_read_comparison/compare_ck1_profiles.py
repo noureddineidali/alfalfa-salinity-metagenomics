@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """Reproduce the CK-1 exact-label comparison with Lv et al. (2026).
 
-Requirements: Python 3, numpy, scipy, matplotlib.
-Usage: python compare_ck1_profiles.py --published ck1_published_table4_extracted.csv \
-        --bracken CK1_pluspf8_c0_genus.bracken --outdir output
+Requirements: Python 3, numpy, scipy.
+Usage from the project root: python analysis/raw_read_comparison/compare_ck1_profiles.py
+    --published data/processed/genus_abundance.tsv
+    --bracken results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken
+    --outdir output
 This script does not synonym-normalize taxa or infer taxon equivalence.
 """
 import argparse
 import csv
 import json
-import math
 from pathlib import Path
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from scipy.spatial.distance import braycurtis, jensenshannon
@@ -27,9 +25,6 @@ def write_csv(path, fields, rows):
         w.writerows(rows)
 
 
-def fmt(v, digits=2):
-    return f'{v:.{digits}f}'
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -40,8 +35,12 @@ def main():
     out = args.outdir
     out.mkdir(exist_ok=True, parents=True)
     with args.published.open(newline='', encoding='utf-8') as f:
-        p_rows = list(csv.DictReader(f))
-    published = {r['genus_label'].strip(): float(r['published_original_abundance']) for r in p_rows}
+        delimiter = '\t' if args.published.suffix == '.tsv' else ','
+        p_rows = list(csv.DictReader(f, delimiter=delimiter))
+    if delimiter == '\t':
+        published = {r['genus'].strip(): float(r['CK-1']) for r in p_rows}
+    else:
+        published = {r['genus_label'].strip(): float(r['published_original_abundance']) for r in p_rows}
     assert len(published) == len(p_rows) == 15805
     with args.bracken.open(newline='', encoding='utf-8') as f:
         b_rows = list(csv.DictReader(f, delimiter='\t'))
@@ -124,159 +123,8 @@ def main():
             toprows.append({'source_profile':profile,'rank_in_source':i,**top})
     write_csv(out/'top20_each_profile.csv',list(toprows[0]),toprows)
 
-    # Plot styles: plain, readable, no inference about taxonomy synonyms.
-    plt.rcParams.update({'font.size':10,'axes.titlesize':13,'axes.labelsize':10,'figure.dpi':170,'savefig.dpi':220})
-    for label,rank,pr,filename in [('Published CK-1',p_sort,P,'fig1_published_top20.png'),
-                                    ('Bracken PlusPF-8 CK-1',b_sort,B,'fig2_bracken_top20.png')]:
-        selected=rank[:20][::-1]
-        fig,ax=plt.subplots(figsize=(10,7.6))
-        ax.barh(range(len(selected)),[pr[k]*100 for k in selected]);ax.set_yticks(range(len(selected)), selected)
-        ax.set_xlabel('Relative abundance within source genus profile (%)')
-        ax.set_title('Top 20 genus labels — '+label,loc='left',pad=12)
-        ax.grid(axis='x',alpha=.17)
-        ax.set_axisbelow(True)
-        ax.spines[['top','right']].set_visible(False)
-        fig.tight_layout()
-        fig.savefig(out/filename,bbox_inches='tight')
-        plt.close(fig)
+    print('Saved comparison tables and metrics to', out)
 
-    # Strong shared labels selected without selecting for differences (highest sum of source percentages).
-    select=sorted(both_pos,key=lambda k:-(P[k]+B[k]))[:18]
-    select=select[::-1]
-    yy=np.arange(len(select))
-    fig,ax=plt.subplots(figsize=(11,7.4))
-    h=.38
-    ax.barh(yy-h/2,[P[n]*100 for n in select],height=h,label='Lv et al. published CK-1')
-    ax.barh(yy+h/2,[B[n]*100 for n in select],height=h,label='Independent Bracken CK-1')
-    ax.set_yticks(yy, select)
-    ax.set_xlabel('Within-profile relative abundance (%)')
-    ax.set_title('Exact shared genera with the highest combined abundance',loc='left',pad=12)
-    ax.legend(frameon=False,loc='lower right')
-    ax.grid(axis='x',alpha=.17)
-    ax.set_axisbelow(True);ax.spines[['top','right']].set_visible(False)
-    fig.tight_layout();fig.savefig(out/'fig3_shared_genera_comparison.png',bbox_inches='tight');plt.close(fig)
 
-    fig,ax=plt.subplots(figsize=(7.9,6.6))
-    ax.scatter(x*100,y*100,s=12,alpha=.45,rasterized=True)
-    lows=min(x.min(),y.min())*100*.7; highs=max(x.max(),y.max())*100*1.5
-    ax.plot([lows,highs],[lows,highs],linestyle='--',linewidth=1,label='Equal abundance')
-    ax.set_xscale('log');ax.set_yscale('log');ax.set_xlim(lows,highs);ax.set_ylim(lows,highs)
-    ax.set_xlabel('Published CK-1 relative abundance (%) — log scale')
-    ax.set_ylabel('Bracken CK-1 relative abundance (%) — log scale')
-    ax.set_title(f'1,263 exact shared positive-abundance genus labels\nSpearman ρ = {spearman.statistic:.3f}',loc='left',pad=11)
-    for tax in ['Bradyrhizobium','Streptomyces','Nocardioides','Mesorhizobium','Mycobacterium']:
-        if tax in both_pos:
-            ax.annotate(tax,(P[tax]*100,B[tax]*100),xytext=(3,4),textcoords='offset points',fontsize=8)
-    ax.grid(True,which='major',alpha=.16);ax.legend(frameon=False)
-    ax.spines[['top','right']].set_visible(False)
-    fig.tight_layout();fig.savefig(out/'fig4_shared_positive_scatter.png',bbox_inches='tight');plt.close(fig)
-
-    fig,ax=plt.subplots(figsize=(8,4.8))
-    xr=np.array([10,20,50,100,200,500])
-    intersections=[len(set(p_sort[:int(k)]) & set(b_sort[:int(k)])) for k in xr]
-    ax.plot(xr,intersections,marker='o',label='Observed exact-name intersection')
-    ax.set_xlabel('Top K genera considered from each profile')
-    ax.set_ylabel('Number of exact labels shared within both top-K lists')
-    ax.set_title('Top-K concordance across independently normalized profiles',loc='left',pad=12)
-    ax.grid(True,alpha=.17);ax.spines[['top','right']].set_visible(False)
-    fig.tight_layout();fig.savefig(out/'fig5_topk_overlap.png',bbox_inches='tight');plt.close(fig)
-
-    # Standalone report for insertion into report 2; unlike a treatment comparison, this is one biological sample.
-    top_b=sorted(bracken,key=lambda z:-B[z])[:10]
-    top_p=sorted(published,key=lambda z:-P[z])[:10]
-    def compare_row(n):
-        pv=(f'{P[n]*100:.3f}%' if n in P else 'not listed')
-        bv=(f'{B[n]*100:.3f}%' if n in B else 'not listed')
-        return f'| {n} | {pv} | {bv} |'
-    txt=f'''# CK-1 genus-profile comparison: Lv et al. (2026) versus Kraken2–Bracken PlusPF-8
-
-**Study:** Lv et al. (2026), *Frontiers in Plant Science*, DOI: 10.3389/fpls.2026.1753229<br>
-**Sample:** CK-1 (`SRR36739085`), the same biological sample in both datasets<br>
-**Status:** Completed exploratory single-sample comparison; not a treatment-level replication.
-
-## Sources and method
-
-1. **Published:** `table 4.xlsx`, `Sheet1`, header `genus`, first numeric column (`1`) confirmed to represent CK-1 against the published `data sheet 2.csv` percentages. Contains {len(published):,} named genus-level labels. The published numerical unit is undocumented; original values were preserved and normalized by the CK-1 column sum ({Ptotal:,.6f} original units).
-2. **Independent:** `CK1_pluspf8_c0_genus.bracken`, Bioconda Bracken package 3.1 (whose bundled executable reports v3.0.1; `-l G -r 150 -t 10`), using Kraken2 2.17.2 and the MD5-verified 26 June 2026 PlusPF-8 reference. Normalization for quantitative comparisons uses `new_est_reads / sum(new_est_reads)` ({Btotal:,} row-summed estimated fragments). Bracken's reported `fraction_total_reads` is also retained unchanged in the full CSV; the two representations differ slightly because abundance is calculated as floating point and exported as integer counts.
-3. **Matching:** Exact, case-sensitive genus-label equality. No inference of taxonomic synonymy or equivalence for names from different taxonomic frameworks. Absence of a label in a source is marked as *not listed*, **not** as a confirmed biological zero.
-4. **Statistics:** Descriptive genus-level comparison within **one sample**: Spearman rank correlation over labels with positive abundance in both sources, log10-scale Pearson correlation, top-K exact-label intersections, and Bray–Curtis/Jensen–Shannon between normalized vectors on the exact-label union. The distances are database-/nomenclature-dependent *profile differences*, not ecological between-sample diversity or treatment effect.
-
-Twelve label cells in the published workbook were stored as Excel date-formatted numbers. The extracted input preserves their underlying serial values because their intended original genus strings cannot be recovered. None matches a Bracken genus; substituting the ISO date strings used in the processed repository table leaves all reported numerical metrics unchanged.
-
-## Quantitative findings
-
-| Measure | Value |
-|---|---:|
-| Labels in published genus matrix | {len(published):,} |
-| Positive published CK-1 genus labels | {metrics['published_nonzero_labels']:,} |
-| Genera in Bracken output | {len(bracken):,} |
-| Labels exactly shared across both tables | {len(both):,} |
-| Shared labels with positive abundance in both | {len(both_pos):,} |
-| Bracken genera absent as exact labels from published table | {metrics['bracken_labels_absent_from_published']:,} |
-| Positive published CK-1 labels absent as exact labels from Bracken | {metrics['published_labels_positive_not_in_bracken']:,} |
-| Bracken abundance represented by exactly shared labels | {100*metrics['bracken_abundance_share_of_shared_labels']:.2f}% |
-| Published abundance represented by exactly shared labels | {100*metrics['published_abundance_share_of_shared_labels']:.2f}% |
-| Spearman ρ (shared positive, n={len(both_pos):,}) | {spearman.statistic:.3f} |
-| Pearson r of log10 proportional abundances (same subset) | {pearson_logs.statistic:.3f} |
-| Intersection of the two top-10 lists | {intersect[10]}/10 |
-| Intersection of the two top-20 lists | {intersect[20]}/20 |
-| Bray–Curtis on exact-label union | {bc:.3f} |
-| Jensen–Shannon divergence (base 2) on exact-label union | {jsd:.3f} |
-
-### Published CK-1 dominant labels
-
-| Published rank | Genus label | Published CK-1 (%) | Bracken CK-1 (%) |
-|---:|---|---:|---|
-'''
-    for i,k in enumerate(top_p,1):
-        txt+=f'| {i} | {k} | {P[k]*100:.3f} | '+(f'{B[k]*100:.3f}' if k in B else 'not listed')+' |\n'
-    txt+='''
-### Reconstructed CK-1 dominant genera
-
-| Bracken rank | Genus | Bracken CK-1 (%) | Published CK-1 (%) |
-|---:|---|---:|---|
-'''
-    for i,k in enumerate(top_b,1):
-        txt+=f'| {i} | {k} | {B[k]*100:.3f} | '+(f'{P[k]*100:.3f}' if k in P else 'not listed')+' |\n'
-    txt+=f'''
-## Interpretation
-
-The independent reconstruction recovers a coherent set of soil-associated genera, including *Bradyrhizobium*, *Mesorhizobium*, *Streptomyces*, *Nocardioides*, *Sphingomonas* and *Arthrobacter*. Of {len(both):,} exactly shared genus labels, {len(both_pos):,} have positive abundance in both sources, and those shared positive labels show a moderately strong positive abundance-rank association (Spearman ρ={spearman.statistic:.3f}). Both top-10 lists include *Bradyrhizobium* and *Nocardioides*.
-
-Nevertheless, **dominance and rank agreement are limited**: only {intersect[10]} genera occur in both top-10 sets, and only {intersect[20]} occur in both top-20 sets. Published CK-1 is led by several provisional labels (such as `PSRF01`, `SCGC-AG-212-J23` and `Gp6-AA40`) that have no exact-label counterpart in the PlusPF-8 Bracken output. Conversely, our reconstructed profile ranks *Streptomyces* and *Escherichia* much higher, and includes labels such as *Terribium* and *Mycolicibacterium* that are absent under those exact names in the published matrix. Distinct taxonomic naming frameworks and reference coverage likely contribute to this mismatch; an authoritative synonym/TaxID crosswalk would be needed to disentangle nomenclature from true assignment differences.
-
-The independent Kraken2 step classified **1,833,747 / 33,808,912 non-host pairs (5.42%)** using the capped PlusPF-8 database. The attempt to use a larger, verified PlusPF-16 database was manually stopped for compute feasibility without producing a result; it cannot establish what PlusPF-16 would have classified. The authors' exact Kraken database build/size and percentage denominator are not stated, so disagreement is not evidence of an erroneous reconstruction, and the two genus profiles are not necessarily directly calibrated.
-
-### Bracken count accounting
-
-The output contains `sum(new_est_reads) = {Btotal:,}`. The Bracken execution summary reports `1,830,146` genus-level reads before the final exported integer counts are aggregated, a difference of {1830146-Btotal:,} fragments (~{100*(1830146-Btotal)/1830146:.3f}%). Inspection of the installed Bracken abundance-estimation code confirms that redistributed abundance is calculated as floating point and each row is converted to an integer when written. Comparisons here renormalize those exported integer counts; `fraction_total_reads` is preserved verbatim alongside them for auditing.
-
-## Figures
-
-![Published top 20](fig1_published_top20.png)
-
-![Bracken top 20](fig2_bracken_top20.png)
-
-![Matched genera](fig3_shared_genera_comparison.png)
-
-![Matched positive abundance scatter](fig4_shared_positive_scatter.png)
-
-![Top-K overlap](fig5_topk_overlap.png)
-
-## Scope
-
-These are **single-sample**, profile-to-profile descriptive results, not CK versus LS/MS significance tests. Unmatched names are **label differences**, not evidence that a taxon is biologically absent. The reported proportions use separate, explicit genus-level denominators; they are not absolute cell abundances.
-
-## Generated files
-
-- `comparison_metrics.json`: summary statistics and explicit denominators.
-- `all_genus_exact_label_comparison.csv`: all {len(names):,} union labels, ranks, normalized proportions and matching status.
-- `shared_positive_genera.csv`: positive-abundance exact-name matches.
-- `top20_each_profile.csv`: both top-20 lists with counterparts if present.
-- `compare_ck1_profiles.py`: reproducible comparison from the extracted published CK-1 column and the Bracken output.
-'''
-    (out/'CK1_comparison_report.md').write_text(txt,encoding='utf-8')
-    print('Saved to',out,'report/plots/comparison files. Shared positive:',len(both_pos),'spearman',spearman.statistic)
-
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

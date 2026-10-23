@@ -4,7 +4,7 @@
 **Article:** Lv et al. (2026), *Salinity gradients alter root-zone soil microbiome structure and nitrogen-related functional potential in alfalfa (Medicago sativa L.): a pot experiment*  
 **DOI:** `10.3389/fpls.2026.1753229`
 
-This audit covers the ten supplementary files stored with the local article copy. Dimensions below include the header row and header column where present. All `.xlsx` workbooks contain one worksheet named `Sheet1`. The accompanying `:Zone.Identifier` files are operating-system metadata and contain no scientific data.
+This audit covers the ten supplementary files associated with the article. Dimensions below include the header row and header column where present. All `.xlsx` workbooks contain one worksheet named `Sheet1`.
 
 ## Supplementary file inventory
 
@@ -74,7 +74,7 @@ The following points are directly verified from the local files:
 
 These files provide published reference values for the completed analyses or for further comparisons, subject to their stated limitations:
 
-- **`table 4.xlsx` — principal taxonomic reference.** It provides the broadest full-depth genus-by-sample matrix in the supplement. It can support comparison of recovered genera, per-sample abundance profiles, dominant-taxon rankings and concordance with the published full-data result. The numbered sample columns must first be documented using the supported CK-1-to-MS-3 order.
+- **`table 4.xlsx` — principal taxonomic reference.** It provides the broadest full-depth genus-by-sample matrix in the supplement. Its source-derived TSV supports comparisons of recovered genera, sample profiles and dominant-taxon rankings. The numbered columns were mapped to CK-1 through MS-3, as documented in [processed-data validation](processed_data_validation.md).
 - **`data sheet 2.csv` and `table 3.xlsx` — dominant-genus summaries.** They can validate the reported top-ten-plus-`Others` composition. The CSV is preferable because it carries explicit sample IDs and avoids the CK-3 *Sediminibacterium* discrepancy in `table 3.xlsx`.
 - **`table 5.xlsx` — alpha-diversity benchmark with qualifications.** Its values can be compared with full-data diversity outputs only after the metric and replicate ordering are resolved. It does not provide a beta-diversity reference.
 - **`table 6.xlsx` — limited gene/function reference.** It can support numerical comparison for the same 100 `DBid` entries across explicitly named samples if an authoritative identifier/function mapping is recovered. Without that mapping, it cannot validate nitrogen-process annotation.
