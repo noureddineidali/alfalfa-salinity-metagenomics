@@ -1,0 +1,20 @@
+# Keep executable and workflow source files LF-terminated across platforms.
+*.py text eol=lf
+*.R text eol=lf
+*.Rmd text eol=lf
+*.qmd text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.Rprofile text eol=lf
+workflow/Snakefile text eol=lf
+
+# Preserve the byte-level formatting of generated evidence and figures.
+# Their trailing spaces are emitted by upstream tools and are not source edits.
+report/*.html -whitespace
+results/figures/**/*.svg -whitespace
+results/qc/**/*.html -whitespace
+results/qc/**/*.txt -whitespace
+results/host_depletion/**/*.log -whitespace
+logs/**/*.log -whitespace
+results/workflow/*.dot -whitespace

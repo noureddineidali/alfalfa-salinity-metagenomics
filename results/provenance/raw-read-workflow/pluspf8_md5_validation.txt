@@ -1,0 +1,17 @@
+hash.k2d: OK
+opts.k2d: OK
+taxo.k2d: OK
+seqid2taxid.map: OK
+inspect.txt: OK
+ktaxonomy.tsv: OK
+library_report.tsv: OK
+nodes.dmp: OK
+names.dmp: OK
+database50mers.kmer_distrib: OK
+database75mers.kmer_distrib: OK
+database100mers.kmer_distrib: OK
+database150mers.kmer_distrib: OK
+database200mers.kmer_distrib: OK
+database250mers.kmer_distrib: OK
+database300mers.kmer_distrib: OK
+unmapped_accessions.txt: OK

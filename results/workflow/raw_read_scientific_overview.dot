@@ -1,0 +1,58 @@
+digraph shotgun_workflow {
+  graph [
+    rankdir=TB, bgcolor="white", pad="0.28", nodesep="0.26", ranksep="0.36",
+    compound=true, splines=ortho, outputorder=edgesfirst,
+    fontname="DejaVu Sans", fontsize=18, fontcolor="#20354B",
+    label="From SRA archive to genus abundance", labelloc=t
+  ];
+  node [
+    shape=box, style="rounded,filled", width=4.0,
+    fontname="DejaVu Sans", fontsize=11, fontcolor="#20354B",
+    color="#66819B", fillcolor="white", penwidth=1.35, margin="0.18,0.13"
+  ];
+  edge [color="#71869B", penwidth=1.6, arrowsize=0.7];
+
+  subgraph cluster_acquisition {
+    label="01   ACQUIRE & ASSESS";
+    labelloc=t; labeljust=l; fontsize=11; fontname="DejaVu Sans Bold";
+    fontcolor="#46698F"; color="#BED1E4"; fillcolor="#F4F8FC";
+    style="rounded,filled"; penwidth=1.2; margin=18;
+    archive [label="SRA archive → paired FASTQ\nprefetch · vdb-validate · size check · fasterq-dump"];
+    rawqc [label="Raw-read quality and pair-count checks\nSeqKit · FastQC · MultiQC"];
+    archive -> rawqc;
+  }
+
+  subgraph cluster_preprocessing {
+    label="02   PREPROCESS READS";
+    labelloc=t; labeljust=l; fontsize=11; fontname="DejaVu Sans Bold";
+    fontcolor="#267D78"; color="#BBDDD7"; fillcolor="#F1FAF8";
+    style="rounded,filled"; penwidth=1.2; margin=18;
+    fastp [label="Paired-read preprocessing\nfastp"];
+    cleanqc [label="Clean-read quality and pair-count checks\nSeqKit · FastQC · MultiQC"];
+    fastp -> cleanqc;
+  }
+
+  subgraph cluster_host {
+    label="03   REMOVE HOST READS";
+    labelloc=t; labeljust=l; fontsize=11; fontname="DejaVu Sans Bold";
+    fontcolor="#765C9A"; color="#D5C6E7"; fillcolor="#F8F5FB";
+    style="rounded,filled"; penwidth=1.2; margin=18;
+    align [label="Align to verified alfalfa reference\nBowtie2 · nuclear + mitochondrial + plastid"];
+    deplete [label="Strict pair removal and validation\nsamtools BAM checks · pair counts · SeqKit"];
+    align -> deplete;
+  }
+
+  subgraph cluster_taxonomy {
+    label="04   RECONSTRUCT TAXONOMY";
+    labelloc=t; labeljust=l; fontsize=11; fontname="DejaVu Sans Bold";
+    fontcolor="#A36A29"; color="#E8C99B"; fillcolor="#FFFAF2";
+    style="rounded,filled"; penwidth=1.2; margin=18;
+    classify [label="Paired-fragment classification + count validation\nKraken2 · MD5-verified PlusPF-8"];
+    abundance [label="Genus abundance estimation + output validation\nBracken · matching 150-bp distribution"];
+    classify -> abundance;
+  }
+
+  rawqc -> fastp [ltail=cluster_acquisition, lhead=cluster_preprocessing];
+  cleanqc -> align [ltail=cluster_preprocessing, lhead=cluster_host];
+  deplete -> classify [ltail=cluster_host, lhead=cluster_taxonomy];
+}

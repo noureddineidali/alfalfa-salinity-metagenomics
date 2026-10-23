@@ -1,0 +1,3 @@
+file	format	type	num_seqs	sum_len	min_len	avg_len	max_len	Q1	Q2	Q3	sum_gap	N50	N50_num	Q20(%)	Q30(%)	AvgQual	GC(%)	sum_n
+data/interim/raw_read_workflow/MS-1/SRR36739079_1.clean.fastq.gz	FASTQ	DNA	34479851	5167144359	31	149.9	150	150	150	150	0	150	17223815	99	96	25.98	61.62	502303
+data/interim/raw_read_workflow/MS-1/SRR36739079_2.clean.fastq.gz	FASTQ	DNA	34479851	5167144359	31	149.9	150	150	150	150	0	150	17223815	94	89	19.78	60.05	178104

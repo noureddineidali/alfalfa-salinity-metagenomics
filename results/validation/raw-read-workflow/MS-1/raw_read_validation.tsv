@@ -1,0 +1,5 @@
+metric	value
+stage	raw
+r1_reads	34492089
+r2_reads	34492089
+paired_counts_equal	TRUE

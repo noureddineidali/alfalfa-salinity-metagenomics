@@ -1,0 +1,10 @@
+category	pairs
+total	34479851
+both_unmapped	33983612
+r1_mapped_only	41659
+r2_mapped_only	16331
+both_mapped	438249
+r1_mapped_only_q20	13151
+r1_mapped_only_q30	9280
+r2_mapped_only_q20	4365
+r2_mapped_only_q30	2640

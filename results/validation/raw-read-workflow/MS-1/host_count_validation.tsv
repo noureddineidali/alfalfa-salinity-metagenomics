@@ -1,0 +1,9 @@
+metric	value
+clean_pairs	34479851
+categories_sum	34479851
+both_unmapped_pairs	33983612
+one_mate_only_pairs	57990
+both_mapped_pairs	438249
+strict_removed_pairs	496239
+strict_removed_percent	1.439214
+status	validated

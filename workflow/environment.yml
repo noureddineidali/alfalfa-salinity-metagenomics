@@ -1,0 +1,15 @@
+name: alfalfa-snakemake
+
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+
+dependencies:
+  - python=3.13
+  - snakemake-minimal
+  - snakesee
+  - numpy
+  - scipy
+  - matplotlib-base
+  - graphviz

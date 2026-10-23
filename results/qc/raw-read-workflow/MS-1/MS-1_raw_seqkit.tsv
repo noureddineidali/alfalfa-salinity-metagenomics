@@ -1,0 +1,3 @@
+file	format	type	num_seqs	sum_len	min_len	avg_len	max_len	Q1	Q2	Q3	sum_gap	N50	N50_num	Q20(%)	Q30(%)	AvgQual	GC(%)	sum_n
+data/raw/fastq/MS-1/SRR36739079_1.fastq	FASTQ	DNA	34492089	5173813350	150	150.0	150	150	150	150	0	150	17246045	98	96	25.95	61.61	506438
+data/raw/fastq/MS-1/SRR36739079_2.fastq	FASTQ	DNA	34492089	5173813350	150	150.0	150	150	150	150	0	150	17246045	94	89	19.76	60.03	182828

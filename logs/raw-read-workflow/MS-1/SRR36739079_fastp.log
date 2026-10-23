@@ -1,0 +1,46 @@
+Read1 before filtering:
+total reads: 34492089
+total bases: 5173813350
+Q20 bases: 5096431201(98.5043%)
+Q30 bases: 4963949266(95.9437%)
+Q40 bases: 0(0%)
+
+Read2 before filtering:
+total reads: 34492089
+total bases: 5173813350
+Q20 bases: 4877212585(94.2673%)
+Q30 bases: 4617824913(89.2538%)
+Q40 bases: 0(0%)
+
+Read1 after filtering:
+total reads: 34479851
+total bases: 5167144359
+Q20 bases: 5090228495(98.5114%)
+Q30 bases: 4958220510(95.9567%)
+Q40 bases: 0(0%)
+
+Read2 after filtering:
+total reads: 34479851
+total bases: 5167144359
+Q20 bases: 4871628710(94.2809%)
+Q30 bases: 4612784430(89.2714%)
+Q40 bases: 0(0%)
+
+Filtering result:
+reads passed filter: 68959702
+reads failed due to low quality: 23556
+reads failed due to too many N: 920
+reads failed due to too short: 0
+reads failed due to adapter dimer: 0
+reads with adapter trimmed: 369218
+bases trimmed due to adapters: 9667614
+
+Duplication rate: 0.0597644%
+
+Insert size peak (evaluated by paired-end reads): 268
+
+JSON report: results/qc/raw-read-workflow/MS-1/fastp/SRR36739079_fastp.json
+HTML report: results/qc/raw-read-workflow/MS-1/fastp/SRR36739079_fastp.html
+
+fastp --in1 data/raw/fastq/MS-1/SRR36739079_1.fastq --in2 data/raw/fastq/MS-1/SRR36739079_2.fastq --out1 data/interim/raw_read_workflow/MS-1/SRR36739079_1.clean.fastq.gz --out2 data/interim/raw_read_workflow/MS-1/SRR36739079_2.clean.fastq.gz --thread 8 --html results/qc/raw-read-workflow/MS-1/fastp/SRR36739079_fastp.html --json results/qc/raw-read-workflow/MS-1/fastp/SRR36739079_fastp.json 
+fastp v1.4.0, time used: 247 seconds

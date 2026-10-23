@@ -1,4 +1,4 @@
-name: Deploy report to GitHub Pages
+name: Deploy project site to GitHub Pages
 
 on:
   push:
@@ -34,9 +34,7 @@ jobs:
         shell: bash
         run: |
           site_dir="${RUNNER_TEMP}/pages-site"
-          mkdir -p "${site_dir}"
-          cp report/alfalfa_salinity_metagenome_reanalysis.html "${site_dir}/index.html"
-          touch "${site_dir}/.nojekyll"
+          python3 scripts/build_pages_site.py "${site_dir}"
           echo "path=${site_dir}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload GitHub Pages artifact
