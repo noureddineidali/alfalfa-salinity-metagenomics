@@ -72,13 +72,13 @@ The following points are directly verified from the local files:
 
 ## Use as full-data reference outputs
 
-The following files can support comparison with a later independent reanalysis, subject to their stated limitations:
+These files provide published reference values for the completed analyses or for further comparisons, subject to their stated limitations:
 
 - **`table 4.xlsx` — principal taxonomic reference.** It provides the broadest full-depth genus-by-sample matrix in the supplement. It can support comparison of recovered genera, per-sample abundance profiles, dominant-taxon rankings and concordance with the published full-data result. The numbered sample columns must first be documented using the supported CK-1-to-MS-3 order.
 - **`data sheet 2.csv` and `table 3.xlsx` — dominant-genus summaries.** They can validate the reported top-ten-plus-`Others` composition. The CSV is preferable because it carries explicit sample IDs and avoids the CK-3 *Sediminibacterium* discrepancy in `table 3.xlsx`.
 - **`table 5.xlsx` — alpha-diversity benchmark with qualifications.** Its values can be compared with full-data diversity outputs only after the metric and replicate ordering are resolved. It does not provide a beta-diversity reference.
 - **`table 6.xlsx` — limited gene/function reference.** It can support numerical comparison for the same 100 `DBid` entries across explicitly named samples if an authoritative identifier/function mapping is recovered. Without that mapping, it cannot validate nitrogen-process annotation.
 - **`table 7.xls` — selected KEGG-pathway reference.** It can support sample-wise comparison of the 30 named pathway abundances represented in the published full-depth output. It is not a complete KEGG, KO or gene-abundance matrix.
-- **`data sheet 1.csv` — covariate reference.** It is the primary sample-level source for joining soil and plant measurements to future sequence-derived outputs. It is not a metagenomic reference output.
+- **`data sheet 1.csv` — covariate reference.** It is the primary sample-level source for joining soil and plant measurements to the community profiles. It is not a metagenomic reference output.
 
-The supplement therefore provides a useful full genus matrix and selected diversity, gene/function and pathway summaries, but it does not provide all intermediate or complete functional outputs needed for exact reconstruction of the published workflow. These constraints should inform later reanalysis planning without determining tool choice, sequencing depth, statistical method or read-versus-assembly strategy.
+The supplement provides a full genus matrix and selected diversity, gene/function and pathway summaries, but not the complete intermediate functional outputs needed to reconstruct the published workflow exactly. The genus matrix anchors both the nine-sample ecological analysis and the CK-1/MS-1 published-versus-reconstructed comparisons; the 30-pathway table supports the functional sensitivity analysis in Report 1.

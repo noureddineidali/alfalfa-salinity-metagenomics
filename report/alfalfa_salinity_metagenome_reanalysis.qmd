@@ -100,7 +100,7 @@ Sequencing used the Illumina NovaSeq 6000 with paired 150-bp reads. Across nine 
 
 ## Data reconstruction and reproducibility audit
 
-The supplementary files were heterogeneous: conventional workbooks, CSV files, a tab-delimited text file carrying an `.xls` extension, and a methodological Word document. Reconstruction produced four analysis-ready inputs without changing original numerical values. This report analyzes only the released processed matrices. A separate companion Report 2 now reconstructs CK-1 and MS-1 from SRA reads; those raw-read results are not incorporated into the nine-sample analyses here.
+The supplementary files were heterogeneous: conventional workbooks, CSV files, a tab-delimited text file carrying an `.xls` extension, and a methodological Word document. Reconstruction produced four analysis-ready inputs without changing original numerical values. This report analyzes the released processed matrices; the companion [raw-read reconstruction](alfalfa_ck1_raw_read_reconstruction.html) examines CK-1 and MS-1 separately.
 
 | Reconstructed input | Dimensions | Main validation |
 |---|---:|---|
@@ -251,4 +251,4 @@ The nitrogen analysis defines a separate reproducibility boundary: the complete 
 
 ---
 
-<span class="small-note">Analytical record: [dataset reconnaissance](../docs/dataset_reconnaissance.md) · [supplementary-data audit](../docs/supplementary_data_audit.md) · [processed-data validation](../docs/processed_data_validation.md) · [nitrogen mapping audit](../docs/nitrogen_mapping_audit.md)</span>
+<span class="small-note">[Project homepage](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/) · Analytical record: [dataset reconnaissance](../docs/dataset_reconnaissance.md) · [supplementary-data audit](../docs/supplementary_data_audit.md) · [processed-data validation](../docs/processed_data_validation.md) · [nitrogen mapping audit](../docs/nitrogen_mapping_audit.md)</span>
