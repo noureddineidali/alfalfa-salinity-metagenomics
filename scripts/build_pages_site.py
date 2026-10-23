@@ -33,7 +33,7 @@ PUBLIC_FILES = (
     "data/processed/genus_abundance.tsv",
 )
 SUPPORT_DIRECTORIES = (
-    "CK1_comparison",
+    "analysis/raw_read_comparison",
     "results/validation/raw-read-workflow/MS-1",
     "results/benchmarks/raw-read-workflow/MS-1",
 )

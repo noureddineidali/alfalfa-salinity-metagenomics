@@ -2,7 +2,7 @@
 
 A reproducible reanalysis of the alfalfa root-zone shotgun metagenomics dataset published by Lv et al. (2026), combining ecological patterns across **nine samples** with independent raw-read reconstruction of **CK-1 and MS-1**.
 
-**🌐 [Explore the project website →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/)**
+**[Explore the project website →](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/)**
 
 **Research reports:** [Report 1 · Nine-sample ecological reanalysis](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_salinity_metagenome_reanalysis.html) · [Report 2 · Raw-read reconstruction](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/report/alfalfa_ck1_raw_read_reconstruction.html)
 
@@ -46,6 +46,6 @@ See the [workflow guide](workflow/README.md) for setup, available samples and va
 
 ## Data, code and limitations
 
-[`analysis/`](analysis/) and [`data/processed/`](data/processed/) support Report 1; [`workflow/`](workflow/), [`scripts/`](scripts/) and [`results/`](results/) contain Report 2's workflow and reproducibility outputs. Sample accessions are listed in the [manifest](data/metadata/sample_manifest.tsv).
+The R scripts in [`analysis/`](analysis/) and validated matrices in [`data/processed/`](data/processed/) support Report 1. Report 2's [taxonomic comparison package](analysis/raw_read_comparison/README.md), [Snakemake workflow](workflow/README.md) and [`results/`](results/) retain its comparison, execution and validation records. Sample accessions are listed in the [manifest](data/metadata/sample_manifest.tsv).
 
 The source material is **root-zone soil**, not a separately isolated rhizosphere fraction. Report 1 has three samples per treatment; Report 2 reconstructs one sample per condition and does not establish a salinity treatment effect. Published abundance units and some nitrogen-function mappings remain unresolved, and most non-host fragments were unclassified with PlusPF-8. See the [dataset audit](docs/dataset_reconnaissance.md), [supplementary-data audit](docs/supplementary_data_audit.md), [processed-data validation](docs/processed_data_validation.md) and [nitrogen mapping audit](docs/nitrogen_mapping_audit.md).

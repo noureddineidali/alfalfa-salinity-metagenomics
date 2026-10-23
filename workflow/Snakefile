@@ -737,7 +737,7 @@ rule validate_ck1_manual:
         kraken_log="logs/raw-read-pilot/CK1_pluspf8_c0.kraken2.log",
         kraken_report="results/taxonomy/raw-read-pilot/CK1_pluspf8_c0.report",
         bracken="results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken",
-        metrics="CK1_comparison/comparison_metrics.json",
+        metrics="analysis/raw_read_comparison/comparison_metrics.json",
     output:
         f"{P['validation_root']}/CK-1/manual_checkpoint_validation.tsv",
     params:

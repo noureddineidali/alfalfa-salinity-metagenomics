@@ -69,11 +69,11 @@ The independent reconstruction recovers a coherent set of soil-associated genera
 
 Nevertheless, **dominance and rank agreement are limited**: only 2 genera occur in both top-10 sets, and only 4 occur in both top-20 sets. Published CK-1 is led by several provisional labels (such as `PSRF01`, `SCGC-AG-212-J23` and `Gp6-AA40`) that have no exact-label counterpart in the PlusPF-8 Bracken output. Conversely, our reconstructed profile ranks *Streptomyces* and *Escherichia* much higher, and includes labels such as *Terribium* and *Mycolicibacterium* that are absent under those exact names in the published matrix. Distinct taxonomic naming frameworks and reference coverage likely contribute to this mismatch; an authoritative synonym/TaxID crosswalk would be needed to disentangle nomenclature from true assignment differences.
 
-The independent Kraken2 step classified **1,833,747 / 33,808,912 non-host pairs (5.42%)** using the capped PlusPF-8 database. The known coverage limitation is described once here, rather than repeated throughout the biological interpretation. The attempt to use a larger, verified PlusPF-16 database was manually stopped for compute feasibility without producing a result; it cannot establish what PlusPF-16 would have classified. The authors' exact Kraken database build/size and percentage denominator are not stated, so disagreement is not evidence of an erroneous reconstruction, and the two genus profiles are not necessarily directly calibrated.
+The independent Kraken2 step classified **1,833,747 / 33,808,912 non-host pairs (5.42%)** using the capped PlusPF-8 database. The attempt to use a larger, verified PlusPF-16 database was manually stopped for compute feasibility without producing a result; it cannot establish what PlusPF-16 would have classified. The authors' exact Kraken database build/size and percentage denominator are not stated, so disagreement is not evidence of an erroneous reconstruction, and the two genus profiles are not necessarily directly calibrated.
 
-### One small Bracken accounting detail
+### Bracken count accounting
 
-The output contains `sum(new_est_reads) = 1,829,204`. The session's Bracken summary reports `1,830,146` genus-level reads before the final exported integer counts are aggregated, a difference of 942 fragments (~0.051%). Inspection of the installed Bracken abundance-estimation code confirms that redistributed abundance is calculated as floating point and each row is converted to an integer when written. Comparisons here renormalize those exported integer counts; `fraction_total_reads` is preserved verbatim alongside them for auditing.
+The output contains `sum(new_est_reads) = 1,829,204`. The Bracken execution summary reports `1,830,146` genus-level reads before the final exported integer counts are aggregated, a difference of 942 fragments (~0.051%). Inspection of the installed Bracken abundance-estimation code confirms that redistributed abundance is calculated as floating point and each row is converted to an integer when written. Comparisons here renormalize those exported integer counts; `fraction_total_reads` is preserved verbatim alongside them for auditing.
 
 ## Figures
 
@@ -87,13 +87,9 @@ The output contains `sum(new_est_reads) = 1,829,204`. The session's Bracken summ
 
 ![Top-K overlap](fig5_topk_overlap.png)
 
-## Reuse and reporting boundaries
+## Scope
 
-- These are **single-sample**, profile-to-profile descriptive results. They do not support CK versus LS/MS significance tests.
-- Unmatched names should be called **label differences**, not taxa proven absent in the other sample/profile.
-- The abundance denominator and incomplete Kraken classification must appear in methods and limitations, but the Results section can straightforwardly discuss recovered taxa and shared ecological signals.
-- Follow-up: inspect taxonomic synonyms and classification evidence for striking mismatches; potentially compare against a better-resourced reference on HPC.
-- For the eventual Snakemake workflow, use the validated sample manifest, database paths/versions, independent source-matrix branch, and exact-label comparison rule shown here.
+These are **single-sample**, profile-to-profile descriptive results, not CK versus LS/MS significance tests. Unmatched names are **label differences**, not evidence that a taxon is biologically absent. The reported proportions use separate, explicit genus-level denominators; they are not absolute cell abundances.
 
 ## Generated files
 

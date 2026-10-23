@@ -71,9 +71,9 @@ Several limitations should be retained explicitly in any downstream sample sheet
 - ENA’s `read_count` values for the available runs correspond to NCBI paired spots rather than to the doubled number of individual reads. Counts should therefore be labelled carefully.
 - The BioProject-level archive size and the sum of run-level NCBI sizes differ. This likely reflects differing archive representations or record states, but the discrepancy has not been resolved.
 
-## 7. Open methodological decisions
+## 7. Methodological questions identified from metadata
 
-The metadata establish the dataset’s scope but do not determine an analysis pipeline. The following methodological questions remain open:
+The metadata establish the dataset’s scope but do not determine an analysis pipeline. The questions below framed the subsequent work; the two reports document which choices were implemented for the nine-sample supplementary-data analysis and the CK-1/MS-1 raw-read reconstruction.
 
 - Whether to analyze the complete dataset or a documented subsample, considering both scientific objectives and computational resources.
 - Whether sequence acquisition should use NCBI SRA archives or ENA paired FASTQ files, and how the missing ENA FASTQ representation for MS-1 should be handled and validated.
@@ -83,6 +83,8 @@ The metadata establish the dataset’s scope but do not determine an analysis pi
 - Which functional profiling strategy, databases and reporting levels should be used.
 - How statistical comparisons should account for only three biological replicates per treatment, multiple testing and the distinction between confirmatory and exploratory results.
 - Whether and how the soil chemistry and plant measurements in the publication supplements should be incorporated as covariates or associated response variables.
+
+Neither report reconstructs the raw reads for all nine samples or a complete functional gene catalogue.
 
 ## 8. Source record
 

@@ -73,7 +73,7 @@ table { font-size: .93rem; }
 
 Lv et al. (2026) investigated how salinity relates to the alfalfa root-zone microbiome. Here, two deposited metagenomes are independently reconstructed from raw reads: control sample CK-1 and moderate-salinity sample MS-1. Their reads pass through the same quality-control, host-depletion and taxonomic workflow, allowing a descriptive comparison of the recovered communities and a direct check against each sample’s published genus profile.
 
-The analysis asks what is reproducible from the public reads and where taxonomic reference choice, nomenclature and reporting detail affect the answer. It does not use two samples to test a salinity effect.
+The analysis asks what is reproducible from the public reads and where taxonomic reference choice, nomenclature and reporting detail affect the answer.
 
 <div class="metric-grid">
   <div class="metric"><strong>68.78 M</strong><span>raw pairs across both runs</span></div>
@@ -83,7 +83,7 @@ The analysis asks what is reproducible from the public reads and where taxonomic
 </div>
 
 ::: {.callout-note title="Scope"}
-These are **one biological sample from each of two treatments**. The comparison is descriptive: it cannot estimate within-treatment variability or establish a salinity effect. The nine-sample supplementary-data reanalysis is a separate report.
+These are **one biological sample from each of two treatments**. The comparison is descriptive: it cannot estimate within-treatment variability or establish a salinity effect. The companion [nine-sample ecological reanalysis](alfalfa_salinity_metagenome_reanalysis.html) uses the published supplementary matrices.
 :::
 
 The source runs are [SRR36739085](https://www.ncbi.nlm.nih.gov/sra/SRR36739085) and [SRR36739079](https://www.ncbi.nlm.nih.gov/sra/SRR36739079), within BioProject [PRJNA1399466](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1399466); the source article is Lv et al. (2026), [DOI 10.3389/fpls.2026.1753229](https://doi.org/10.3389/fpls.2026.1753229).
@@ -488,7 +488,7 @@ MPLCONFIGDIR=/tmp /home/noureddine/miniconda3/bin/python \
   --outdir .
 ```
 
-The command was run from `CK1_comparison/`. Independent validation regenerated every CSV, JSON and Markdown output byte-for-byte; all five figure images were pixel-identical.
+This historical command was run from the former root-level `CK1_comparison/` directory. The intact package now resides at [`analysis/raw_read_comparison/`](../analysis/raw_read_comparison/README.md); the same relative command can be run there. Its numerical metrics and Markdown narrative were revalidated after relocation.
 </details>
 
 ## Computational reproducibility and interpretation
@@ -519,7 +519,7 @@ The earlier manual CK-1 Kraken2 processing time was about **20 min 46 s**, versu
 
 Three methodological observations shape interpretation. First, the FastQC GC warning was not a reason to discard environmental reads. Second, host depletion can be specified and checked at the paired-fragment level against a versioned, nuclear-plus-organellar reference. Third, the reference database and abundance denominator are part of the taxonomic result: Kraken2’s classified fraction, Bracken’s thresholded genus counts and normalized genus composition measure different quantities.
 
-The analytical boundary remains substantial. PlusPF-8 is a workstation-scale, minimizer-downsampled database; reference coverage and the original study’s unspecified database build, classifier settings and abundance unit limit exact profile replication. The attempted PlusPF-16 run was interrupted for feasibility reasons and produced no comparative classification. The planned confidence-0.1 sensitivity analysis was not run. Equal paired-read counts and the 10,000-pair MS-1 identifier check support synchronization but do not replace a full-file identifier audit. Above all, CK-1 and MS-1 provide no replication within treatment and cannot support a salinity-effect test.
+The analytical boundary remains substantial. PlusPF-8 is a workstation-scale, minimizer-downsampled database; reference coverage and the original study’s unspecified database build, classifier settings and abundance unit limit exact profile replication. The attempted PlusPF-16 run was interrupted for feasibility reasons and produced no comparative classification. A confidence-0.1 sensitivity analysis was not performed. Equal paired-read counts and the 10,000-pair MS-1 identifier check support synchronization but do not replace a full-file identifier audit. Above all, CK-1 and MS-1 provide no replication within treatment and cannot support a salinity-effect test.
 
 ## Methodological guidance and references
 
@@ -536,10 +536,10 @@ The preprocessing logic follows the four-stage framework of raw-read assessment,
 
 ## Conclusion
 
-Both public runs yielded complete, validated paired-read reconstructions. Conservative preprocessing preserved virtually all fragments; strict alfalfa depletion removed about 1.3–1.4% of cleaned pairs. The common PlusPF-8 workflow recovered genus profiles that can be compared descriptively, with a CK-1/MS-1 Bray–Curtis dissimilarity of **0.174**. This single pair does not establish a treatment effect.
+Both public runs yielded complete, validated paired-read reconstructions. Conservative preprocessing preserved virtually all fragments; strict alfalfa depletion removed about 1.3–1.4% of cleaned pairs. The common PlusPF-8 workflow recovered genus profiles with a CK-1/MS-1 Bray–Curtis dissimilarity of **0.174**.
 
 The larger finding is methodological. Only about 5% of final non-host fragments were classified, and each reconstructed profile differs substantially from its corresponding published genus profile under exact-label comparison. These differences do not invalidate either result. They show why versioned references, explicit denominators, taxonomic crosswalks and transparent execution records matter when interpreting environmental metagenomes.
 
 ---
 
-<span class="small-note">Supporting record: [raw-read provenance](../docs/raw_read_provenance.tsv) · [MS-1 workflow](../workflow/README.md) · [MS-1 validation](../results/validation/raw-read-workflow/MS-1/) · [dataset reconnaissance](../docs/dataset_reconnaissance.md) · [CK-1 comparison package](../CK1_comparison/README.md)</span>
+<span class="small-note">[Project homepage](https://noureddineidali.github.io/alfalfa-salinity-metagenomics/) · Supporting record: [raw-read provenance](../docs/raw_read_provenance.tsv) · [Snakemake workflow](../workflow/README.md) · [MS-1 validation](../results/validation/raw-read-workflow/MS-1/) · [dataset reconnaissance](../docs/dataset_reconnaissance.md) · [taxonomic comparison package](../analysis/raw_read_comparison/README.md)</span>

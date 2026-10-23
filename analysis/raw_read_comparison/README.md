@@ -1,6 +1,6 @@
-# CK-1 taxonomic comparison — reproducibility package
+# Raw-read taxonomic comparison
 
-Compares Lv et al. (2026) supplementary `table 4.xlsx` CK-1 (column `1`, sample identity checked against `data sheet 2.csv`) with the independent PlusPF-8 Bracken genus-level output.
+This directory contains the reproducible CK-1 comparison between the genus profile released by Lv et al. (2026) and the independent PlusPF-8 Bracken profile. The published CK-1 column in `table 4.xlsx` was identified using the explicitly labelled `data sheet 2.csv`. Report 2 extends the descriptive comparison to MS-1; its two-sample figures are built by [`scripts/build_two_sample_raw_read_figures.py`](../../scripts/build_two_sample_raw_read_figures.py) from the validated profiles and metadata.
 
 ## Run
 
@@ -24,7 +24,7 @@ This rebuilds the comparison CSV tables, JSON metrics, figures and Markdown repo
 - `comparison_metrics.json`: all principal descriptive statistics.
 - `fig1_...` through `fig5_...`: publication-style figures.
 - `ck1_published_table4_extracted.csv`: source numeric column, values unchanged; relative percentages are calculated in script.
-- `CK1_pluspf8_c0_genus.bracken`: actual genus-level Bracken table.
+- `CK1_pluspf8_c0_genus.bracken`: genus-level Bracken table, retained here to make this comparison self-contained. It is byte-identical to the archived output under `results/taxonomy/raw-read-pilot/`.
 
 ## Methodology
 
@@ -32,4 +32,4 @@ Comparison is **one sample versus the same sample** through two distinct bioinfo
 
 Twelve genus-label cells in the source workbook were stored as Excel date-formatted numbers. Their underlying serial values are retained in the extracted input because the intended original labels are not recoverable. A sensitivity rerun using the processed table's ISO date representations produced identical metrics because none of these 12 labels matched a Bracken genus.
 
-For repo integration, preserve database build/date, MD5 confirmation, read-pair input count, execution commands and excluded PlusPF-16 pilot (manually stopped). The original paper's database build and abundance denominator are insufficiently specified for exact computational replication.
+Database release, MD5 validation, read-pair counts and executed commands are documented in the [raw-read provenance](../../docs/raw_read_provenance.tsv) and [Report 2](../../report/alfalfa_ck1_raw_read_reconstruction.html). The original publication does not specify its exact Kraken database build or abundance denominator, limiting exact computational replication.

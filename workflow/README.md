@@ -9,11 +9,11 @@ This workflow reconstructs a selected PRJNA1399466 sample from its SRA archive t
 - Graphviz in `alfalfa-snakemake` renders the workflow diagrams; the bioinformatics environment does not need it.
 - Snakesee in `alfalfa-snakemake` optionally monitors Snakemake's existing run history; it is not part of any analysis rule.
 
-The workflow intentionally does not use per-rule Conda environments. Activate `alfalfa-meta`, then invoke the `alfalfa-snakemake` executable directly so shell jobs inherit the bioinformatics `PATH` while workflow Python code uses `alfalfa-snakemake`. The examples below locate it under the Conda base `envs/` directory; substitute its installed path if your Conda configuration stores named environments elsewhere.
+The workflow does not use per-rule Conda environments. Activate `alfalfa-meta`, then invoke the `alfalfa-snakemake` executable directly so shell jobs inherit the bioinformatics `PATH` while workflow Python code uses `alfalfa-snakemake`. The examples below locate it under the Conda base `envs/` directory; adjust the path if named environments are stored elsewhere.
 
-Any separate comparison script importing NumPy, SciPy or Matplotlib should likewise use the Python interpreter from `alfalfa-snakemake`; the workflow does not run the completed CK-1 comparison script.
+The standalone [CK-1 comparison script](../analysis/raw_read_comparison/compare_ck1_profiles.py) also requires NumPy, SciPy and Matplotlib from `alfalfa-snakemake`; it is not a Snakemake rule.
 
-Activate `alfalfa-meta` before running the commands below from the repository root. No per-rule environment switching is required.
+Run the commands below from the repository root with `alfalfa-meta` active.
 
 ## Validation commands
 
@@ -29,7 +29,7 @@ To inspect the complete job plan for a chosen sample, use the same selection syn
 
 The nine valid IDs, treatments, replicates and run accessions come from `data/metadata/sample_manifest.tsv`. Selection is case insensitive (`ms-1` resolves to `MS-1`); an invalid ID stops before jobs are scheduled and displays the manifest-derived choices. Replace `MS-1` in the command to select another sample.
 
-The retained CK-1 checkpoint can be validated without reprocessing reads:
+The manual CK-1 outputs can be validated without reprocessing reads:
 
 ```bash
 "$(conda info --base)/envs/alfalfa-snakemake/bin/snakemake" \
@@ -60,6 +60,8 @@ With `alfalfa-meta` already active, run one command from the repository root:
 ```
 
 The local profile allows up to 12 cores, caps declared memory at 9,000 MB, and serializes major I/O and memory intensive rules through `heavy=1`. It does not enable `--keep-incomplete`; successfully completed intermediates are retained. Per-step logs are under `logs/raw-read-workflow/`, Snakemake's run log is under `.snakemake/log/`, and host alignment metrics are under `results/host_depletion/raw-read-workflow/`.
+
+The `raw-read-pilot` directory label preserves the manually executed CK-1 record; `raw-read-workflow` identifies Snakemake-generated outputs. The canonical sample identifiers throughout are `CK-1` and `MS-1`.
 
 After the completed MS-1 run, its cleaned FASTQs, host-alignment BAM and per-fragment Kraken2 output were removed locally to reclaim space; validated non-host pairs, Kraken2 reports and Bracken profiles remain. Those removed files are still declared workflow outputs or inputs. A future full Snakemake invocation may regenerate them and repeat expensive upstream rules; inspect a dry run before rerunning MS-1.
 
