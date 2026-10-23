@@ -5,11 +5,22 @@ data/raw/
 *.fq
 *.fq.gz
 *.sra
+*.sra.vdbcache
+*.vdbcache
+
+# Raw-read pilot intermediates
+data/interim/
+results/qc/raw-read-pilot/work/
 
 # Large databases / temporary data
 databases/
 tmp/
 cache/
+/.snakemake/
+/.quarto/
+*.bam
+*.bai
+*.kraken
 
 # R / Python local files
 .Rhistory
@@ -17,12 +28,50 @@ cache/
 __pycache__/
 .ipynb_checkpoints/
 *.code-workspace
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*:Zone.Identifier
+
+# Local render and graphical-abstract preview
+/README.html
+/README_files/
+/results/figures/project_graphical_abstract_preview.png
+/config/raw_read_samples.tsv
+/results/workflow/ms1_raw_read_workflow.mmd
+
+# Generated MultiQC files containing machine-specific local paths;
+# retain the compact, path-free summary tables for publication.
+**/*_multiqc/*.html
+**/*_multiqc/*_data/multiqc_data.json
+**/*_multiqc/*_data/multiqc_sources.txt
+/logs/raw-read-workflow/**/multiqc_*.log
+/results/validation/raw-read-workflow/runs/*/fasterq_size_check.txt
+
+# Empty success-path logs; substantive execution logs and validation tables remain public
+/logs/raw-read-workflow/CK-1/validate_manual_checkpoint.log
+/logs/raw-read-workflow/MS-1/bam_quickcheck.log
+/logs/raw-read-workflow/MS-1/host_alignment.pipeline.log
+/logs/raw-read-workflow/MS-1/host_pair_counts.log
+/logs/raw-read-workflow/MS-1/validate_bracken.log
+/logs/raw-read-workflow/MS-1/validate_kraken2.log
+/logs/raw-read-workflow/validate_software.log
+
+# Redundant MultiQC auxiliary exports
+**/*_multiqc_data/*plot*.txt
+**/*_multiqc_data/fastqc-status-check-heatmap.txt
+**/*_multiqc_data/llms-full.txt
+**/*_multiqc_data/multiqc.parquet
+**/*_multiqc_data/multiqc.log
+**/*_multiqc_data/multiqc_citations.txt
 
 # Secrets
 .env
 
 # Private research notes
 docs/paper_design_and_statistical_notes.md
+docs/interview_talking_points.md
 
 # Local publication and supplementary source files
 references/

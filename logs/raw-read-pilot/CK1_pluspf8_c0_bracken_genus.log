@@ -1,0 +1,19 @@
+ >> Checking for Valid Options...
+ >> Running Bracken 
+      >> python src/est_abundance.py -i results/taxonomy/raw-read-pilot/CK1_pluspf8_c0.report -o results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken -k databases/kraken2/pluspf_8_20260626/database150mers.kmer_distrib -l G -t 10
+>> Checking report file: results/taxonomy/raw-read-pilot/CK1_pluspf8_c0.report
+PROGRAM START TIME: 10-19-2026 19:27:37
+BRACKEN SUMMARY (Kraken report: results/taxonomy/raw-read-pilot/CK1_pluspf8_c0.report)
+    >>> Threshold: 10 
+    >>> Number of genuses in sample: 2835 
+	  >> Number of genuses with reads > threshold: 1897 
+	  >> Number of genuses with reads < threshold: 938 
+    >>> Total reads in sample: 33808912
+	  >> Total reads kept at genuses level (reads > threshold): 1207813
+	  >> Total reads discarded (genuses reads < threshold): 3406
+	  >> Reads distributed: 622333
+	  >> Reads not distributed (eg. no genuses above threshold): 195
+	  >> Unclassified reads: 31975165
+BRACKEN OUTPUT PRODUCED: results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken
+PROGRAM END TIME: 10-19-2026 19:27:37
+  Bracken complete.

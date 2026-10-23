@@ -1,0 +1,7 @@
+2026-10-22T18:08:51 vdb-validate.3.4.1 info: Database 'SRR36739079.sra' metadata: md5 ok
+2026-10-22T18:08:51 vdb-validate.3.4.1 info: Table 'SEQUENCE' metadata: md5 ok
+2026-10-22T18:08:51 vdb-validate.3.4.1 info: Column 'ALTREAD': md5 ok
+2026-10-22T18:09:07 vdb-validate.3.4.1 info: Column 'ORIGINAL_QUALITY': md5 ok
+2026-10-22T18:10:19 vdb-validate.3.4.1 info: Column 'READ': md5 ok
+2026-10-22T18:10:19 vdb-validate.3.4.1 info: Column 'SPOT_FILTER': md5 ok
+2026-10-22T18:10:37 vdb-validate.3.4.1 info: Database 'SRR36739079.sra' is consistent

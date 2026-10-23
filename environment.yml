@@ -1,0 +1,18 @@
+name: alfalfa-meta
+
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+
+dependencies:
+  - sra-tools
+  - fastp
+  - fastqc
+  - multiqc
+  - seqkit
+  - ncbi-datasets-cli
+  - bowtie2
+  - samtools
+  - kraken2
+  - bracken

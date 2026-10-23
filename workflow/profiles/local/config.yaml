@@ -1,0 +1,9 @@
+cores: 12
+resources:
+  heavy: 1
+  mem_mb: 9000
+printshellcmds: true
+show-failed-logs: true
+latency-wait: 60
+rerun-incomplete: true
+scheduler: greedy

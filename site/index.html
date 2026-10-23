@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Independent reanalysis of public alfalfa root-zone metagenomes and raw-read reconstruction of CK-1 and MS-1.">
+  <title>Alfalfa root-zone microbiome · salinity reanalysis</title>
+  <style>
+    :root { color-scheme: light; --ink:#17313b; --muted:#536873; --line:#dce7e7; --green:#327a63; --blue:#3a719b; --rust:#b67245; --paper:#f7faf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    a { color:#205f83; text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--rust); outline-offset:3px; }
+    .wrap { max-width:1120px; margin:auto; padding:0 28px; }
+    header { background:linear-gradient(150deg,#ffffff 0%,#edf5f1 100%); border-bottom:1px solid var(--line); }
+    header .wrap { padding-top:66px; padding-bottom:51px; }
+    .eyebrow { color:var(--green); font-weight:750; letter-spacing:.13em; text-transform:uppercase; font-size:.76rem; }
+    h1 { max-width:850px; font-size:clamp(2.2rem,5vw,4.1rem); line-height:1.12; letter-spacing:-.045em; margin:12px 0 19px; }
+    .lead { max-width:780px; color:#3e5660; font-size:1.17rem; margin:0; }
+    .links { display:flex; gap:12px; flex-wrap:wrap; margin-top:30px; }
+    .button { display:inline-block; padding:12px 18px; border:1px solid var(--line); border-radius:9px; background:#fff; text-decoration:none; font-weight:700; }
+    .button.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+    main { padding-top:38px; padding-bottom:60px; }
+    figure { margin:0; background:#fff; border:1px solid var(--line); border-radius:13px; padding:16px; box-shadow:0 12px 35px #17313b09; }
+    figure img { display:block; width:100%; height:auto; }
+    figcaption { color:var(--muted); font-size:.88rem; margin:13px 5px 2px; }
+    h2 { font-size:1.4rem; letter-spacing:-.025em; margin:44px 0 16px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:11px; padding:22px 24px; }
+    .card:first-child { border-top:4px solid var(--blue); }
+    .card:last-child { border-top:4px solid var(--rust); }
+    .card h3 { margin:4px 0 8px; font-size:1.15rem; }
+    .card p { margin:0 0 17px; color:var(--muted); }
+    .card a { font-weight:700; }
+    .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:27px; }
+    .metric { border-left:3px solid var(--green); padding:2px 16px; }
+    .metric strong { display:block; font-size:1.55rem; letter-spacing:-.03em; }
+    .metric span { display:block; color:var(--muted); font-size:.88rem; }
+    .context { max-width:850px; color:var(--muted); margin:30px 0 0; }
+    footer { border-top:1px solid var(--line); padding:23px 0 30px; color:var(--muted); font-size:.9rem; }
+    footer .wrap { display:flex; gap:18px; flex-wrap:wrap; }
+    @media(max-width:720px) { header .wrap { padding-top:43px; } .grid,.metrics { grid-template-columns:1fr; } .metrics { gap:17px; } .wrap { padding-left:18px; padding-right:18px; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap">
+    <div class="eyebrow">Public metagenomics reanalysis · PRJNA1399466</div>
+    <h1>Salinity-associated restructuring of the alfalfa root-zone microbiome</h1>
+    <p class="lead">How does salinity relate to root-zone microbial communities, and how reproducible are published profiles from public data? Two complementary analyses revisit Lv et al. (2026): nine released sample profiles and independent raw-read reconstructions of CK-1 and MS-1.</p>
+    <nav class="links" aria-label="Reports">
+      <a class="button primary" href="report/alfalfa_salinity_metagenome_reanalysis.html">Explore Report 1 →</a>
+      <a class="button" href="report/alfalfa_ck1_raw_read_reconstruction.html">Explore Report 2 →</a>
+    </nav>
+  </div></header>
+  <main class="wrap">
+    <figure>
+      <a href="results/figures/project_graphical_abstract.svg" aria-label="Open the full-size graphical abstract"><img src="results/figures/project_graphical_abstract.svg" alt="Graphical abstract connecting the nine-sample supplementary-data reanalysis with CK-1 and MS-1 raw-read reconstruction and their principal findings."></a>
+      <figcaption>Complementary analyses of published sample-level profiles and independently reconstructed raw-read taxonomic profiles. Open the image for a full-size view.</figcaption>
+    </figure>
+    <h2>Two views of the same public dataset</h2>
+    <div class="grid">
+      <article class="card"><div class="eyebrow">Report 1 · published data</div><h3>Nine-sample ecological reanalysis</h3><p>Community composition, diversity, environmental context and functional-pathway sensitivity across CK, LS and MS.</p><a href="report/alfalfa_salinity_metagenome_reanalysis.html">Read the interactive report →</a></article>
+      <article class="card"><div class="eyebrow">Report 2 · deposited reads</div><h3>Independent raw-read reconstruction</h3><p>CK-1 and MS-1 from SRA acquisition through QC, host depletion and Kraken2/Bracken profiling, with descriptive comparison to the published genera.</p><a href="report/alfalfa_ck1_raw_read_reconstruction.html">Read the interactive report →</a></article>
+    </div>
+    <div class="metrics" aria-label="Selected quantitative findings">
+      <div class="metric"><strong>R² = 0.775</strong><span>Nine-sample genus-level Bray–Curtis PERMANOVA</span></div>
+      <div class="metric"><strong>R² = 0.822</strong><span>Composition-normalized 30-pathway PERMANOVA</span></div>
+      <div class="metric"><strong>5.17–5.42%</strong><span>Non-host fragments classified in CK-1 and MS-1</span></div>
+    </div>
+    <p class="context">The sampled material is operationally defined root-zone soil, not a strictly isolated rhizosphere fraction. Report 1 has three sequenced samples per treatment; Report 2 reconstructs one sample from each of two conditions and does not test treatment effects.</p>
+  </main>
+  <footer><div class="wrap"><a href="https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1399466">NCBI BioProject</a><a href="https://doi.org/10.3389/fpls.2026.1753229">Source publication</a><a href="https://github.com/noureddineidali/alfalfa-salinity-metagenomics">Code and provenance on GitHub</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "published_genus_labels": 15805,
+  "published_nonzero_labels": 13333,
+  "bracken_genus_labels": 1897,
+  "exact_shared_labels": 1358,
+  "shared_labels_positive_in_both": 1263,
+  "published_labels_positive_not_in_bracken": 12070,
+  "bracken_labels_absent_from_published": 539,
+  "published_abundance_share_of_shared_labels": 0.19742299253405213,
+  "bracken_abundance_share_of_shared_labels": 0.8223156083192471,
+  "spearman_shared_positive": 0.6450989266528825,
+  "pearson_log10_shared_positive": 0.6807006265295876,
+  "bray_curtis_union_exact_labels": 0.8489889179026905,
+  "jensen_shannon_divergence_base2_union_exact_labels": 0.7409769014223343,
+  "topk_intersections": {
+    "10": 2,
+    "20": 4,
+    "50": 6,
+    "100": 13,
+    "500": 77
+  },
+  "published_original_abundance_total_unknown_units": 954879.479053,
+  "bracken_sum_new_est_reads": 1829204,
+  "bracken_sum_kraken_assigned_reads": 1207813,
+  "bracken_sum_added_reads": 621391,
+  "bracken_sum_fraction_total_reads": 0.99981,
+  "kraken2_classified_pairs_from_session_log": 1833747,
+  "kraken2_total_pairs_from_session_log": 33808912,
+  "bracken_log_genus_level_reads_before_rowwise_integer_rounding": 1830146,
+  "bracken_log_vs_output_count_difference": 942
+}

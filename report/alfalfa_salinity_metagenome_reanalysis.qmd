@@ -32,6 +32,9 @@ h2 { border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
 .ck { background: var(--ck); } .ls { background: var(--ls); } .ms { background: var(--ms); }
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: .8rem; margin: 1.1rem 0 1.5rem; }
 .metric { border: 1px solid var(--line); border-top: 4px solid #607d8b; border-radius: .35rem; padding: .85rem 1rem; background: white; }
+.metric:nth-child(1) { border-top-color: var(--ck); }
+.metric:nth-child(2) { border-top-color: var(--ls); }
+.metric:nth-child(3) { border-top-color: var(--ms); }
 .metric strong { display: block; font-size: 1.45rem; line-height: 1.2; color: #17324d; }
 .metric span { display: block; color: var(--muted); font-size: .88rem; margin-top: .25rem; }
 .key-results { margin: 1.4rem 0 1.8rem; }
@@ -46,10 +49,12 @@ h2 { border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
 .secondary-findings { background: var(--panel); border: 1px solid var(--line); border-radius: .45rem; padding: 1rem 1.2rem .45rem; margin-top: 1rem; }
 .secondary-findings ul { margin-top: .55rem; }
 .secondary-findings li { margin-bottom: .45rem; }
-.summary-panel { background: var(--panel); border-left: 4px solid #456a83; padding: 1rem 1.2rem; margin: 1.2rem 0; }
 .small-note { color: var(--muted); font-size: .92rem; }
 figure { margin-top: 1.5rem; margin-bottom: 1.8rem; }
 figcaption { color: var(--muted); font-size: .92rem; }
+.result-line { background: var(--panel); border-left: 4px solid #607d8b; padding: .8rem 1rem; margin: 1.2rem 0; line-height: 1.55; }
+.result-line.taxonomic { border-left-color: var(--ck); }
+.result-line.functional { border-left-color: var(--ms); }
 table { font-size: .94rem; }
 @media (max-width: 850px) {
   .finding-grid { grid-template-columns: 1fr; }
@@ -64,9 +69,9 @@ table { font-size: .94rem; }
 
 ## Project overview
 
-Lv et al. (2026) investigated how increasing salinity reshaped the alfalfa root-zone microbiome and its metagenome-inferred functional potential. Here, the released sample-level data were reconstructed and independently reanalyzed to quantify community restructuring, investigate sample-level heterogeneity, and test the robustness and reproducibility of the reported functional patterns.
+Lv et al. (2026) investigated how increasing salinity reshaped the alfalfa root-zone microbiome and its metagenome-inferred functional potential. This report independently reanalyzes the released data for all nine samples: how whole-community composition changes across treatments, how one control sample stands apart, and whether functional patterns persist when differences in total pathway abundance are removed.
 
-The analysis connects genus-level composition, within- and between-sample diversity, measured soil conditions, and selected KEGG pathway profiles. Particular attention is given to effects that become visible only at the multivariate or sample-resolved level, and to whether functional conclusions remain stable under alternative representations of the same released data.
+Genus composition, diversity, soil measurements and selected KEGG pathway summaries are examined together, while keeping the limits of three sequenced samples per treatment and metagenome-inferred function in view.
 
 <div class="key-results">
 <p class="section-kicker">Key analytical results</p>
@@ -95,7 +100,7 @@ Sequencing used the Illumina NovaSeq 6000 with paired 150-bp reads. Across nine 
 
 ## Data reconstruction and reproducibility audit
 
-The supplementary files were heterogeneous: conventional workbooks, CSV files, a tab-delimited text file carrying an `.xls` extension, and a methodological Word document. Reconstruction produced four analysis-ready inputs without changing original numerical values. This report analyzes those released processed matrices; independent raw-read/SRA reprocessing remains a later phase.
+The supplementary files were heterogeneous: conventional workbooks, CSV files, a tab-delimited text file carrying an `.xls` extension, and a methodological Word document. Reconstruction produced four analysis-ready inputs without changing original numerical values. This report analyzes only the released processed matrices. A separate companion Report 2 now reconstructs CK-1 and MS-1 from SRA reads; those raw-read results are not incorporated into the nine-sample analyses here.
 
 | Reconstructed input | Dimensions | Main validation |
 |---|---:|---|
@@ -110,13 +115,11 @@ The audit also retained source inconsistencies rather than silently repairing th
 
 ## Taxonomic composition
 
-The full matrix contains many recognizable genus names and many database-derived provisional or coded labels. Labels were preserved as released; coded names were not replaced by speculative taxonomy. For visualization, genera were ranked by mean relative abundance across all nine samples, the ten highest-ranked labels were displayed, and every remaining row was combined as `Others`.
+The full matrix contains recognizable genus names alongside provisional or coded labels. All names were preserved as released; coded labels were not assigned speculative taxonomy. For a readable sample-level view, the six labels with the highest mean within-sample proportions across the nine samples are shown below. This is a focused display, not a filtered analysis: all 15,805 rows were retained for diversity and community-level comparisons.
 
-![The ten highest-ranked reported genus-level labels plus the combined abundance of all remaining labels. Rankings use mean relative abundance across the nine samples.](../results/figures/top10_plus_others_by_sample.png){fig-alt="Stacked relative-abundance bars for CK, LS and MS samples, with most abundance assigned to the combined Others category." width=95%}
+![Six leading reported genus labels across individual samples. Points show within-sample proportions and short horizontal bars show treatment means; the same vertical scale is used in every panel.](../results/figures/report1-presentation/leading_genera_sample_patterns.svg){fig-alt="Six small multiples for CK, LS and MS, including a high Sediminibacterium proportion in CK-3." width=100%}
 
-The large `Others` fraction shows that the displayed genera are a compact summary of a long, diverse tail rather than a complete description of the community. CK-3 has a visibly elevated *Sediminibacterium* fraction, but this feature alone does not explain its position in whole-community analyses.
-
-![Treatment patterns for the ten highest-ranked genus-level labels. Points are biological samples and summaries describe the three samples per treatment.](../results/figures/top10_taxa_treatment_patterns.png){fig-alt="Small-multiple treatment plots for the ten most abundant reported genus-level taxa." width=98%}
+These labels each account for only a small part of their sample's total profile. The figure highlights a conspicuous *Sediminibacterium* value in CK-3, but the community-level analysis below tests whether CK-3 differs more broadly. The original top-ten and `Others` displays remain in the supporting figure directory.
 
 ## Alpha diversity
 
@@ -130,15 +133,11 @@ Alpha diversity showed considerable overlap among treatments. This does not conf
 
 Bray–Curtis dissimilarity was calculated from within-sample genus proportions, followed by PCoA. The ordination is unsupervised: treatment labels colour the samples after their coordinates have been derived from the genus profiles.
 
-![Genus-level Bray–Curtis PCoA. Circles are samples and diamonds are treatment centroids.](../results/figures/genus_bray_curtis_pcoa.png){fig-alt="Bray-Curtis PCoA separating CK from salinity treatments on axis 1 and LS from MS on axis 2." width=86%}
+![Genus-level Bray–Curtis PCoA from the saved ordination coordinates. Circles are samples and diamonds are treatment centroids; colours follow the CK, LS and MS key above.](../results/figures/report1-presentation/genus_bray_curtis_pcoa_refined.svg){fig-alt="Genus-level Bray–Curtis PCoA showing CK samples left of LS and MS, with CK-3 separated from CK-1 and CK-2." width=88%}
 
-<div class="metric-grid">
-  <div class="metric"><strong>R² = 0.775</strong><span>global taxonomic PERMANOVA</span></div>
-  <div class="metric"><strong>p = 0.0023</strong><span>9,999-permutation analysis</span></div>
-  <div class="metric"><strong>p = 0.877</strong><span>PERMDISP</span></div>
-</div>
+<div class="result-line taxonomic"><strong>Global genus profile:</strong> PERMANOVA R² = 0.775, p = 0.0023 (9,999 permutations); PERMDISP p = 0.877.</div>
 
-Treatment accounted for 77.5% of the multivariate variation. The non-significant PERMDISP result provides no evidence that this global result was driven by unequal within-group dispersion. Pairwise effect sizes were **R² ≈ 0.775 for CK–LS**, **R² ≈ 0.772 for CK–MS**, and **R² ≈ 0.491 for LS–MS**. These are large descriptive effects, but pairwise significance is poorly resolved: with three samples in each of two groups, only 20 unique group allocations exist.
+The dispersion result provides no evidence that unequal within-group spread drove the global separation. Pairwise effect sizes were **R² ≈ 0.775 for CK–LS**, **R² ≈ 0.772 for CK–MS**, and **R² ≈ 0.491 for LS–MS**. These are large descriptive effects, but pairwise significance is poorly resolved: with three samples in each of two groups, only 20 unique group allocations exist.
 
 The reconstructed PCoA explains 64.8% and 16.1% on its first two axes. The publication reports 73.24% and 11.22%. Because the paper does not specify the exact input table, filtering, transformation, ordination implementation, or negative-eigenvalue handling, its percentages were not reproduced exactly.
 
@@ -158,7 +157,9 @@ Soil EC, pH, total N, nitrate N, and ammonium N were standardized across the nin
 
 Fitted-variable analyses associate these measurements strongly with the taxonomic ordination, but treatment and environment are deliberately coupled in this experiment. With nine observations, these associations should be read as environmental context rather than independent causal partitioning. In particular, they do not identify a measured variable that uniquely explains CK-3.
 
-## Functional pathway analysis
+## Functional pathway structure and scale sensitivity
+
+### Individual pathways
 
 The available pathway table contains 30 named KEGG Level 3 summaries, not a complete KO-by-sample or gene-by-sample matrix. Row-wise z-scores can be useful for heatmaps, but they show each pathway relative to its own mean and standard deviation; they do not compare absolute abundance across pathways. Inferential tests therefore used the underlying released values.
 
@@ -168,33 +169,21 @@ Kruskal–Wallis tests identified **13 of 30 pathways with nominal p < 0.05**, i
 The pathway table describes selected metagenome-derived functional potential. It does not demonstrate transcription, protein production, enzyme activity, or nitrogen-transformation rates. Those levels require metatranscriptomic, metaproteomic, enzyme, isotope, or direct process-rate evidence.
 :::
 
-## Functional-profile multivariate extension
+### Joint profile and the raw abundance scale
 
-Treating the 30 released pathways as a multivariate profile revealed strong treatment structure in the raw values:
+Testing the 30 released pathways jointly revealed strong treatment structure in the raw values. The raw-profile PERMANOVA gave R² = 0.891 and p = 0.0023; PERMDISP gave p = 0.801. Raw functional PCoA axes 1 and 2 represented 88.2% and 8.7% of the ordination variation, respectively.
 
-<div class="metric-grid">
-  <div class="metric"><strong>R² = 0.891</strong><span>raw functional PERMANOVA</span></div>
-  <div class="metric"><strong>p = 0.0023</strong><span>treatment permutation test</span></div>
-  <div class="metric"><strong>p = 0.801</strong><span>raw-profile PERMDISP</span></div>
-  <div class="metric"><strong>88.2% + 8.7%</strong><span>raw PCoA axes 1 and 2</span></div>
-</div>
+The dispersion test did not indicate heterogeneous spread as an explanation. The dominance of the first axis, however, called for a scale diagnostic before interpreting that separation as pathway-compositional turnover.
 
-The dispersion test does not indicate that the raw-profile result is explained by heterogeneous spread. However, the dominance of the first axis required a scale diagnostic before interpreting it as pathway-compositional turnover.
-
-## Pathway-total sensitivity analysis
+### Within-sample composition sensitivity analysis
 
 Raw functional PCoA1 was almost perfectly correlated with each sample's total abundance across the 30 selected pathways: **r = −0.9988**. Bray–Curtis is sensitive to total scale when profiles do not have equal sums, so the raw ordination principally captures differences in the total reported pathway signal.
 
 To separate this scale component from relative profile composition, each sample was normalized to sum to one across the same 30 pathways. The sensitivity analysis does not redefine the unknown source unit; it asks whether treatment structure remains after removing among-sample total differences.
 
-![Bray–Curtis PCoA after normalizing each sample to its composition across the 30 selected pathways.](../results/figures/normalized_functional_pathway_pcoa.png){fig-alt="Composition-normalized functional PCoA separating CK, LS and MS samples." width=86%}
+![Bray–Curtis PCoA after normalizing each sample to its composition across the 30 selected pathways. This sensitivity analysis removes among-sample differences in the summed pathway signal.](../results/figures/normalized_functional_pathway_pcoa.png){fig-alt="Composition-normalized functional PCoA separating CK, LS and MS samples." width=86%}
 
-<div class="metric-grid">
-  <div class="metric"><strong>R² = 0.822</strong><span>composition-normalized PERMANOVA</span></div>
-  <div class="metric"><strong>p = 0.0023</strong><span>treatment permutation test</span></div>
-  <div class="metric"><strong>p = 0.649</strong><span>composition-normalized PERMDISP</span></div>
-  <div class="metric"><strong>68.0% + 21.4%</strong><span>normalized PCoA axes 1 and 2</span></div>
-</div>
+<div class="result-line functional"><strong>Composition-normalized profile:</strong> PERMANOVA R² = 0.822, p = 0.0023; PERMDISP p = 0.649. PCoA axes 1 and 2 represent 68.0% and 21.4%, respectively.</div>
 
 Treatment structure therefore remains strong after removing the total-abundance scale effect. The two analyses together indicate that the raw pattern contained both an overall abundance-scale component and genuine restructuring in the **relative composition of the 30 selected pathway summaries**.
 
@@ -256,13 +245,9 @@ The environmental variables are treatment-responsive and strongly collinear with
 
 The released data support strong treatment-associated restructuring of genus-level community composition despite relatively stable alpha diversity. This result is not explained by unequal multivariate dispersion, and its largest pairwise effects involve the control. CK-3 adds an important sample-level dimension: its conspicuous *Sediminibacterium* pattern accompanies a broader whole-community displacement, although its measured soil profile remains CK-like.
 
-The selected functional pathways also show strong treatment-associated compositional restructuring after within-sample normalization. The raw ordination combined this relative restructuring with a dominant total-abundance scale component, as demonstrated by the near-perfect correlation between PCoA1 and pathway total. Individual pathway evidence is weaker: 13 nominal results become zero after BH-FDR correction.
+The 30 selected pathway summaries also retain treatment-associated structure after within-sample normalization. The raw ordination combined relative restructuring with a dominant pathway-total scale component; individual pathway evidence was weaker after multiple-testing correction.
 
 The nitrogen analysis defines a separate reproducibility boundary: the complete Figure 7 categorization cannot be rebuilt from the released identifier information. Claims about nitrogen-process activity, responsible taxa, or pathway flux would additionally require direct linkage and independent activity measurements.
-
-<div class="summary-panel">
-The central result is therefore twofold: salinity is associated with large, reproducible multivariate shifts in the released taxonomic and selected functional profiles, while incomplete annotation and limited replication sharply constrain feature-level and mechanistic conclusions.
-</div>
 
 ---
 

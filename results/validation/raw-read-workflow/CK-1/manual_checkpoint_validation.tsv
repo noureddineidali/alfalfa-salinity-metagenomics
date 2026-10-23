@@ -1,0 +1,10 @@
+metric	value
+sample	CK-1
+accession	SRR36739085
+nonhost_pairs	33808912
+classified_pairs	1833747
+classification_percent	5.423857
+bracken_genera	1897
+comparison_metrics_consistent	TRUE
+executed_command_provenance_present	TRUE
+status	validated

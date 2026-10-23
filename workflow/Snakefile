@@ -1,0 +1,755 @@
+"""Sample-driven raw-read reconstruction for PRJNA1399466."""
+
+import csv
+import difflib
+import os
+import shutil
+import sys
+from pathlib import Path
+
+from snakemake.exceptions import WorkflowError
+
+configfile: "config/raw_read_workflow.yaml"
+
+
+P = config["paths"]
+HOST = config["host"]
+TAX = config["taxonomy"]
+R = config["resources"]
+EXECUTION = config["execution"]
+
+def read_samples(path):
+    with open(path, newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    required = {
+        "sample_id", "treatment", "replicate", "biosample_accession",
+        "sra_sample_accession", "experiment_accession", "run_accession",
+    }
+    if not rows or set(rows[0]) != required:
+        raise WorkflowError(f"Unexpected sample-manifest columns in {path}")
+    if len({row["sample_id"] for row in rows}) != len(rows):
+        raise WorkflowError("Duplicate sample IDs in sample manifest")
+    if len({row["run_accession"] for row in rows}) != len(rows):
+        raise WorkflowError("Duplicate run accessions in sample manifest")
+    return {row["sample_id"]: row for row in rows}
+
+
+SAMPLE_RECORDS = read_samples(config["sample_manifest"])
+
+
+def sample_selection_error(message):
+    print(f"Sample selection error: {message}", file=sys.stderr)
+    raise SystemExit(2)
+
+
+def select_samples(requested, records, manifest):
+    if not isinstance(requested, list) or not requested:
+        sample_selection_error("active_samples must be a nonempty list, for example: --config 'active_samples=[\"MS-1\"]'")
+
+    by_casefold = {}
+    for sample in records:
+        key = sample.casefold()
+        if key in by_casefold:
+            sample_selection_error(f"Sample IDs differ only by case in {manifest}: {by_casefold[key]}, {sample}")
+        by_casefold[key] = sample
+
+    selected = []
+    for supplied in requested:
+        canonical = by_casefold.get(supplied.casefold()) if isinstance(supplied, str) else None
+        if canonical is None:
+            suggestion = difflib.get_close_matches(str(supplied).casefold(), by_casefold, n=1, cutoff=0.6)
+            suggestion_text = f" Did you mean {by_casefold[suggestion[0]]}?" if suggestion else ""
+            choices = "\n".join(
+                f"  {sample} — {record['treatment']}, replicate {record['replicate']}"
+                for sample, record in records.items()
+            )
+            sample_selection_error(
+                f"Invalid sample ID {supplied!r}.{suggestion_text}\n"
+                f"Valid sample IDs from {manifest}:\n{choices}"
+            )
+        if canonical in selected:
+            sample_selection_error(f"Sample {canonical} was requested more than once in active_samples")
+        selected.append(canonical)
+    return selected
+
+
+SAMPLES = select_samples(config.get("active_samples"), SAMPLE_RECORDS, config["sample_manifest"])
+
+if os.environ.get("CONDA_DEFAULT_ENV") != EXECUTION["bioinformatics_environment"]:
+    raise WorkflowError(
+        "Activate alfalfa-meta before invoking Snakemake from alfalfa-snakemake."
+    )
+if Path(sys.prefix).name != EXECUTION["orchestration_environment"]:
+    raise WorkflowError("Use the Snakemake executable from alfalfa-snakemake.")
+
+BIO_PREFIX = Path(os.environ.get("CONDA_PREFIX", "")).resolve()
+REQUIRED_TOOLS = [
+    "prefetch", "vdb-validate", "fasterq-dump", "seqkit", "fastqc",
+    "fastp", "multiqc", "bowtie2", "samtools", "kraken2", "bracken",
+]
+for tool in REQUIRED_TOOLS:
+    executable = shutil.which(tool)
+    if executable is None:
+        raise WorkflowError(f"Required executable is missing from PATH: {tool}")
+    try:
+        Path(executable).resolve().relative_to(BIO_PREFIX)
+    except ValueError as error:
+        raise WorkflowError(f"{tool} resolves outside alfalfa-meta: {executable}") from error
+
+ORCHESTRATION_PYTHON = sys.executable
+VALIDATOR = "workflow/scripts/validate_workflow.py"
+
+RUNS = {sample: SAMPLE_RECORDS[sample]["run_accession"] for sample in SAMPLES}
+
+
+onstart:
+    for root in [P["log_root"], P["benchmark_root"], P["validation_root"], P["provenance_root"]]:
+        Path(root).mkdir(parents=True, exist_ok=True)
+    for sample in SAMPLES:
+        Path(P["log_root"], sample).mkdir(parents=True, exist_ok=True)
+        Path(P["benchmark_root"], sample).mkdir(parents=True, exist_ok=True)
+        Path(P["validation_root"], sample).mkdir(parents=True, exist_ok=True)
+    for run in RUNS.values():
+        Path(P["log_root"], "runs", run).mkdir(parents=True, exist_ok=True)
+        Path(P["benchmark_root"], "runs", run).mkdir(parents=True, exist_ok=True)
+        Path(P["validation_root"], "runs", run).mkdir(parents=True, exist_ok=True)
+
+SRA_PATTERN = f"{P['sra_root']}/{{run}}/{{run}}.sra"
+RAW_R1_PATTERN = f"{P['fastq_root']}/{{sample}}/{{run}}_1.fastq"
+RAW_R2_PATTERN = f"{P['fastq_root']}/{{sample}}/{{run}}_2.fastq"
+CLEAN_R1_PATTERN = f"{P['interim_root']}/{{sample}}/{{run}}_1.clean.fastq.gz"
+CLEAN_R2_PATTERN = f"{P['interim_root']}/{{sample}}/{{run}}_2.clean.fastq.gz"
+NONHOST_R1_PATTERN = f"{P['interim_root']}/{{sample}}/{{run}}_1.nonhost.fastq.gz"
+NONHOST_R2_PATTERN = f"{P['interim_root']}/{{sample}}/{{run}}_2.nonhost.fastq.gz"
+
+
+def run_for(wildcards):
+    return RUNS[wildcards.sample]
+
+
+def sra_path(wildcards):
+    run = run_for(wildcards)
+    return f"{P['sra_root']}/{run}/{run}.sra"
+
+
+def raw_r1(wildcards):
+    run = run_for(wildcards)
+    return f"{P['fastq_root']}/{wildcards.sample}/{run}_1.fastq"
+
+
+def raw_r2(wildcards):
+    run = run_for(wildcards)
+    return f"{P['fastq_root']}/{wildcards.sample}/{run}_2.fastq"
+
+
+def clean_r1(wildcards):
+    run = run_for(wildcards)
+    return f"{P['interim_root']}/{wildcards.sample}/{run}_1.clean.fastq.gz"
+
+
+def clean_r2(wildcards):
+    run = run_for(wildcards)
+    return f"{P['interim_root']}/{wildcards.sample}/{run}_2.clean.fastq.gz"
+
+
+def nonhost_r1(wildcards):
+    run = run_for(wildcards)
+    return f"{P['interim_root']}/{wildcards.sample}/{run}_1.nonhost.fastq.gz"
+
+
+def nonhost_r2(wildcards):
+    run = run_for(wildcards)
+    return f"{P['interim_root']}/{wildcards.sample}/{run}_2.nonhost.fastq.gz"
+
+
+rule all:
+    input:
+        f"{P['provenance_root']}/software_versions.tsv",
+        f"{P['provenance_root']}/reference_validation.tsv",
+        expand(f"{P['qc_root']}/{{sample}}/raw_multiqc/{{sample}}_raw_multiqc.html", sample=SAMPLES),
+        expand(f"{P['qc_root']}/{{sample}}/clean_multiqc/{{sample}}_clean_multiqc.html", sample=SAMPLES),
+        expand(f"{P['validation_root']}/{{sample}}/nonhost_validation.tsv", sample=SAMPLES),
+        expand(f"{P['validation_root']}/{{sample}}/kraken2_validation.tsv", sample=SAMPLES),
+        expand(f"{P['validation_root']}/{{sample}}/bracken_validation.tsv", sample=SAMPLES),
+
+
+rule validate_software:
+    output:
+        f"{P['provenance_root']}/software_versions.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+        bio_prefix=str(BIO_PREFIX),
+    log:
+        f"{P['log_root']}/validate_software.log",
+    shell:
+        """
+        mkdir -p $(dirname {output})
+        {params.python} {params.validator} versions \
+          --bio-prefix {params.bio_prefix} --output {output} > {log} 2>&1
+        """
+
+
+rule validate_references:
+    input:
+        fasta=HOST["fasta"],
+        bt2_1=HOST["bowtie2_index"] + ".1.bt2",
+        bt2_2=HOST["bowtie2_index"] + ".2.bt2",
+        bt2_3=HOST["bowtie2_index"] + ".3.bt2",
+        bt2_4=HOST["bowtie2_index"] + ".4.bt2",
+        bt2_r1=HOST["bowtie2_index"] + ".rev.1.bt2",
+        bt2_r2=HOST["bowtie2_index"] + ".rev.2.bt2",
+        hash=f"{TAX['database']}/hash.k2d",
+        opts=f"{TAX['database']}/opts.k2d",
+        taxo=f"{TAX['database']}/taxo.k2d",
+        distribution=f"{TAX['database']}/database{TAX['bracken_read_length']}mers.kmer_distrib",
+        manifest=TAX["database_manifest"],
+    output:
+        summary=f"{P['provenance_root']}/reference_validation.tsv",
+        md5=f"{P['provenance_root']}/pluspf8_md5_validation.txt",
+    params:
+        host_sha256=HOST["sha256"],
+        database=TAX["database"],
+        database_release=TAX["database_release"],
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.summary})
+        observed=$(sha256sum {input.fasta} | cut -d ' ' -f 1)
+        test "$observed" = "{params.host_sha256}"
+        checks=$(grep -v 'tar\.gz$' {input.manifest} \
+          | (cd {params.database} && md5sum -c -))
+        printf '%s\n' "$checks" > {output.md5}
+        printf 'item\tvalue\nstatus\tvalidated\nhost_fasta_sha256\t%s\nkraken_database_release\t%s\n' \
+          "$observed" "{params.database_release}" > {output.summary}
+        """
+
+
+rule prefetch_sra:
+    output:
+        sra=SRA_PATTERN,
+    params:
+        root=P["sra_root"],
+    log:
+        f"{P['log_root']}/runs/{{run}}/prefetch.log",
+    benchmark:
+        f"{P['benchmark_root']}/runs/{{run}}/prefetch.tsv",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        r"""
+        mkdir -p {params.root} $(dirname {log})
+        prefetch {wildcards.run} --max-size 10G -O {params.root} > {log} 2>&1
+        """
+
+
+rule validate_sra:
+    input:
+        sra=SRA_PATTERN,
+    output:
+        f"{P['validation_root']}/runs/{{run}}/vdb_validate.ok",
+    log:
+        f"{P['log_root']}/runs/{{run}}/vdb_validate.log",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        """
+        mkdir -p $(dirname {output}) $(dirname {log})
+        vdb-validate {input.sra} > {log} 2>&1
+        printf 'validated\t%s\n' {wildcards.run} > {output}
+        """
+
+
+rule fasterq_size_check:
+    input:
+        sra=SRA_PATTERN,
+        valid=f"{P['validation_root']}/runs/{{run}}/vdb_validate.ok",
+    output:
+        f"{P['validation_root']}/runs/{{run}}/fasterq_size_check.txt",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        """
+        fasterq-dump {input.sra} --split-files --skip-technical \
+          --size-check only -x > {output} 2>&1
+        """
+
+
+rule fasterq_dump:
+    input:
+        sra=sra_path,
+        valid=lambda wildcards: f"{P['validation_root']}/runs/{run_for(wildcards)}/vdb_validate.ok",
+        size_check=lambda wildcards: f"{P['validation_root']}/runs/{run_for(wildcards)}/fasterq_size_check.txt",
+    output:
+        r1=RAW_R1_PATTERN,
+        r2=RAW_R2_PATTERN,
+    params:
+        outdir=lambda wildcards: f"{P['fastq_root']}/{wildcards.sample}",
+        tempdir=lambda wildcards: f"{P['temp_root']}/{wildcards.sample}/fasterq",
+    threads: R["fasterq_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/{{run}}_fasterq_dump.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/{{run}}_fasterq_dump.tsv",
+    resources:
+        heavy=1,
+        mem_mb=1500,
+    shell:
+        r"""
+        mkdir -p {params.outdir} {params.tempdir} $(dirname {log})
+        fasterq-dump {input.sra} --split-files --skip-technical \
+          -O {params.outdir} -t {params.tempdir} -e {threads} -p -v > {log} 2>&1
+        """
+
+
+rule seqkit_raw:
+    input:
+        r1=raw_r1,
+        r2=raw_r2,
+    output:
+        stats=f"{P['qc_root']}/{{sample}}/{{sample}}_raw_seqkit.tsv",
+        valid=f"{P['validation_root']}/{{sample}}/raw_read_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    log:
+        f"{P['log_root']}/{{sample}}/seqkit_raw.log",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.stats}) $(dirname {output.valid}) $(dirname {log})
+        seqkit stats -a -T {input.r1} {input.r2} > {output.stats} 2> {log}
+        {params.python} {params.validator} paired-stats \
+          --stats {output.stats} --stage raw --output {output.valid}
+        """
+
+
+rule fastqc_raw:
+    input:
+        r1=raw_r1,
+        r2=raw_r2,
+    output:
+        html1=f"{P['qc_root']}/{{sample}}/raw/{{sample}}_R1_fastqc.html",
+        zip1=f"{P['qc_root']}/{{sample}}/raw/{{sample}}_R1_fastqc.zip",
+        html2=f"{P['qc_root']}/{{sample}}/raw/{{sample}}_R2_fastqc.html",
+        zip2=f"{P['qc_root']}/{{sample}}/raw/{{sample}}_R2_fastqc.zip",
+    params:
+        outdir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/raw",
+        run=run_for,
+    threads: R["fastqc_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/fastqc_raw.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/fastqc_raw.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p {params.outdir} $(dirname {log})
+        fastqc --threads {threads} --outdir {params.outdir} \
+          {input.r1} {input.r2} > {log} 2>&1
+        mv {params.outdir}/{params.run}_1_fastqc.html {output.html1}
+        mv {params.outdir}/{params.run}_1_fastqc.zip {output.zip1}
+        mv {params.outdir}/{params.run}_2_fastqc.html {output.html2}
+        mv {params.outdir}/{params.run}_2_fastqc.zip {output.zip2}
+        """
+
+
+rule fastp:
+    input:
+        r1=raw_r1,
+        r2=raw_r2,
+        raw_valid=rules.seqkit_raw.output.valid,
+    output:
+        r1=CLEAN_R1_PATTERN,
+        r2=CLEAN_R2_PATTERN,
+        html=f"{P['qc_root']}/{{sample}}/fastp/{{run}}_fastp.html",
+        json=f"{P['qc_root']}/{{sample}}/fastp/{{run}}_fastp.json",
+    threads: R["fastp_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/{{run}}_fastp.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/{{run}}_fastp.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.r1}) $(dirname {output.html}) $(dirname {log})
+        fastp --in1 {input.r1} --in2 {input.r2} \
+          --out1 {output.r1} --out2 {output.r2} --thread {threads} \
+          --html {output.html} --json {output.json} > {log} 2>&1
+        """
+
+
+rule seqkit_clean:
+    input:
+        r1=clean_r1,
+        r2=clean_r2,
+    output:
+        stats=f"{P['qc_root']}/{{sample}}/{{sample}}_clean_seqkit.tsv",
+        valid=f"{P['validation_root']}/{{sample}}/clean_read_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    log:
+        f"{P['log_root']}/{{sample}}/seqkit_clean.log",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        """
+        mkdir -p $(dirname {output.stats}) $(dirname {output.valid}) $(dirname {log})
+        seqkit stats -a -T {input.r1} {input.r2} > {output.stats} 2> {log}
+        {params.python} {params.validator} paired-stats \
+          --stats {output.stats} --stage clean --output {output.valid}
+        """
+
+
+rule fastqc_clean:
+    input:
+        r1=clean_r1,
+        r2=clean_r2,
+    output:
+        html1=f"{P['qc_root']}/{{sample}}/clean/{{sample}}_R1_clean_fastqc.html",
+        zip1=f"{P['qc_root']}/{{sample}}/clean/{{sample}}_R1_clean_fastqc.zip",
+        html2=f"{P['qc_root']}/{{sample}}/clean/{{sample}}_R2_clean_fastqc.html",
+        zip2=f"{P['qc_root']}/{{sample}}/clean/{{sample}}_R2_clean_fastqc.zip",
+    params:
+        outdir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/clean",
+        run=run_for,
+    threads: R["fastqc_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/fastqc_clean.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/fastqc_clean.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p {params.outdir} $(dirname {log})
+        fastqc --threads {threads} --outdir {params.outdir} \
+          {input.r1} {input.r2} > {log} 2>&1
+        mv {params.outdir}/{params.run}_1.clean_fastqc.html {output.html1}
+        mv {params.outdir}/{params.run}_1.clean_fastqc.zip {output.zip1}
+        mv {params.outdir}/{params.run}_2.clean_fastqc.html {output.html2}
+        mv {params.outdir}/{params.run}_2.clean_fastqc.zip {output.zip2}
+        """
+
+
+rule host_align:
+    input:
+        r1=clean_r1,
+        r2=clean_r2,
+        clean_valid=rules.seqkit_clean.output.valid,
+        references=rules.validate_references.output,
+        software=rules.validate_software.output,
+    output:
+        bam=f"{P['interim_root']}/{{sample}}/{{sample}}_vs_alfalfa.bam",
+    params:
+        index=HOST["bowtie2_index"],
+        metrics=f"{P['host_root']}/{{sample}}/{{sample}}_bowtie2_host.log",
+    threads: R["bowtie2_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/host_alignment.pipeline.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/host_alignment.tsv",
+    resources:
+        heavy=1,
+        mem_mb=3000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.bam}) $(dirname {params.metrics}) $(dirname {log})
+        bowtie2 --end-to-end --sensitive -x {params.index} \
+          -1 {input.r1} -2 {input.r2} -p {threads} \
+          --met-stderr --met 30 --time 2> {params.metrics} \
+        | samtools view -b -o {output.bam} - 2> {log}
+        """
+
+
+rule bam_quickcheck:
+    input:
+        bam=rules.host_align.output.bam,
+    output:
+        f"{P['validation_root']}/{{sample}}/bam_quickcheck.ok",
+    log:
+        f"{P['log_root']}/{{sample}}/bam_quickcheck.log",
+    shell:
+        """
+        mkdir -p $(dirname {output}) $(dirname {log})
+        samtools quickcheck -v {input.bam} > {log} 2>&1
+        printf 'status\tpassed\n' > {output}
+        """
+
+
+rule host_pair_counts:
+    input:
+        bam=rules.host_align.output.bam,
+        quickcheck=rules.bam_quickcheck.output,
+        clean_valid=rules.seqkit_clean.output.valid,
+    output:
+        counts=f"{P['host_root']}/{{sample}}/{{sample}}_pair_categories.tsv",
+        valid=f"{P['validation_root']}/{{sample}}/host_count_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    threads: R["samtools_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/host_pair_counts.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/host_pair_counts.tsv",
+    resources:
+        heavy=1,
+        mem_mb=1500,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.counts}) $(dirname {output.valid}) $(dirname {log})
+        total=$(samtools view -c --threads {threads} -f READ1 -F SECONDARY,SUPPLEMENTARY {input.bam})
+        both_unmapped=$(samtools view -c --threads {threads} -f READ1,UNMAP,MUNMAP -F SECONDARY,SUPPLEMENTARY {input.bam})
+        r1_mapped_only=$(samtools view -c --threads {threads} -f READ1,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        r2_mapped_only=$(samtools view -c --threads {threads} -f READ2,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        both_mapped=$(samtools view -c --threads {threads} -f READ1 -F UNMAP,MUNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        r1_q20=$(samtools view -c --threads {threads} -q 20 -f READ1,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        r1_q30=$(samtools view -c --threads {threads} -q 30 -f READ1,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        r2_q20=$(samtools view -c --threads {threads} -q 20 -f READ2,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        r2_q30=$(samtools view -c --threads {threads} -q 30 -f READ2,MUNMAP -F UNMAP,SECONDARY,SUPPLEMENTARY {input.bam})
+        printf 'category\tpairs\n' > {output.counts}
+        printf 'total\t%s\nboth_unmapped\t%s\nr1_mapped_only\t%s\nr2_mapped_only\t%s\nboth_mapped\t%s\nr1_mapped_only_q20\t%s\nr1_mapped_only_q30\t%s\nr2_mapped_only_q20\t%s\nr2_mapped_only_q30\t%s\n' \
+          "$total" "$both_unmapped" "$r1_mapped_only" "$r2_mapped_only" "$both_mapped" \
+          "$r1_q20" "$r1_q30" "$r2_q20" "$r2_q30" >> {output.counts}
+        {params.python} {params.validator} host-counts --counts {output.counts} \
+          --clean-validation {input.clean_valid} --output {output.valid} > {log} 2>&1
+        """
+
+
+rule extract_nonhost:
+    input:
+        bam=rules.host_align.output.bam,
+        host_valid=rules.host_pair_counts.output.valid,
+    output:
+        r1=NONHOST_R1_PATTERN,
+        r2=NONHOST_R2_PATTERN,
+    threads: R["samtools_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/{{run}}_extract_nonhost.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/{{run}}_extract_nonhost.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.r1}) $(dirname {log})
+        {{
+          samtools view -u -f UNMAP,MUNMAP -F SECONDARY,SUPPLEMENTARY {input.bam} \
+          | samtools collate -@ {threads} -u -O - \
+          | samtools fastq -@ {threads} -1 {output.r1} -2 {output.r2} \
+              -0 /dev/null -s /dev/null -n -
+        }} 2> {log}
+        """
+
+
+rule seqkit_nonhost:
+    input:
+        r1=nonhost_r1,
+        r2=nonhost_r2,
+        host_valid=rules.host_pair_counts.output.valid,
+    output:
+        stats=f"{P['qc_root']}/{{sample}}/{{sample}}_nonhost_seqkit.tsv",
+        valid=f"{P['validation_root']}/{{sample}}/nonhost_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+        extraction_log=lambda wildcards: f"{P['log_root']}/{wildcards.sample}/{run_for(wildcards)}_extract_nonhost.log",
+    log:
+        f"{P['log_root']}/{{sample}}/seqkit_nonhost.log",
+    resources:
+        heavy=1,
+        mem_mb=1000,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.stats}) $(dirname {output.valid}) $(dirname {log})
+        seqkit stats -a -T {input.r1} {input.r2} > {output.stats} 2> {log}
+        {params.python} {params.validator} nonhost \
+          --stats {output.stats} --host-validation {input.host_valid} \
+          --extraction-log {params.extraction_log} --output {output.valid}
+        """
+
+
+rule multiqc_raw:
+    input:
+        rules.fastqc_raw.output,
+    output:
+        f"{P['qc_root']}/{{sample}}/raw_multiqc/{{sample}}_raw_multiqc.html",
+    params:
+        indir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/raw",
+        outdir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/raw_multiqc",
+    log:
+        f"{P['log_root']}/{{sample}}/multiqc_raw.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/multiqc_raw.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p {params.outdir} $(dirname {log})
+        multiqc {params.indir} -o {params.outdir} \
+          -n {wildcards.sample}_raw_multiqc.html --force > {log} 2>&1
+        """
+
+
+rule multiqc_clean:
+    input:
+        fastqc=rules.fastqc_clean.output,
+        fastp_html=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/fastp/{run_for(wildcards)}_fastp.html",
+        fastp_json=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/fastp/{run_for(wildcards)}_fastp.json",
+    output:
+        f"{P['qc_root']}/{{sample}}/clean_multiqc/{{sample}}_clean_multiqc.html",
+    params:
+        clean_dir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/clean",
+        fastp_dir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/fastp",
+        outdir=lambda wildcards: f"{P['qc_root']}/{wildcards.sample}/clean_multiqc",
+    log:
+        f"{P['log_root']}/{{sample}}/multiqc_clean.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/multiqc_clean.tsv",
+    resources:
+        heavy=1,
+        mem_mb=2000,
+    shell:
+        r"""
+        mkdir -p {params.outdir} $(dirname {log})
+        multiqc {params.clean_dir} {params.fastp_dir} -o {params.outdir} \
+          -n {wildcards.sample}_clean_multiqc.html --force > {log} 2>&1
+        """
+
+
+rule kraken2:
+    input:
+        r1=nonhost_r1,
+        r2=nonhost_r2,
+        nonhost_valid=rules.seqkit_nonhost.output.valid,
+        references=rules.validate_references.output,
+        software=rules.validate_software.output,
+    output:
+        classifications=f"{P['taxonomy_root']}/{{sample}}/{{sample}}_{TAX['profile_id']}.kraken",
+        report=f"{P['taxonomy_root']}/{{sample}}/{{sample}}_{TAX['profile_id']}.report",
+    params:
+        database=TAX["database"],
+        confidence=TAX["confidence"],
+    threads: R["kraken2_threads"]
+    log:
+        f"{P['log_root']}/{{sample}}/kraken2.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/kraken2.tsv",
+    resources:
+        heavy=1,
+        mem_mb=8500,
+    shell:
+        r"""
+        mkdir -p $(dirname {output.report}) $(dirname {log})
+        kraken2 --db {params.database} --paired --gzip-compressed --memory-mapping \
+          --threads {threads} --confidence {params.confidence} \
+          --report {output.report} --output {output.classifications} \
+          {input.r1} {input.r2} 2> {log}
+        """
+
+
+rule validate_kraken2:
+    input:
+        report=rules.kraken2.output.report,
+        log=rules.kraken2.log,
+        nonhost_valid=rules.seqkit_nonhost.output.valid,
+    output:
+        f"{P['validation_root']}/{{sample}}/kraken2_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    log:
+        f"{P['log_root']}/{{sample}}/validate_kraken2.log",
+    shell:
+        """
+        {params.python} {params.validator} kraken \
+          --report {input.report} --log {input.log} \
+          --nonhost-validation {input.nonhost_valid} --output {output} > {log} 2>&1
+        """
+
+
+rule bracken_genus:
+    input:
+        report=rules.kraken2.output.report,
+        kraken_valid=rules.validate_kraken2.output,
+        distribution=f"{TAX['database']}/database{TAX['bracken_read_length']}mers.kmer_distrib",
+    output:
+        abundance=f"{P['taxonomy_root']}/{{sample}}/{{sample}}_{TAX['profile_id']}_genus.bracken",
+        report=f"{P['taxonomy_root']}/{{sample}}/{{sample}}_{TAX['profile_id']}_bracken_genuses.report",
+    params:
+        database=TAX["database"],
+        read_length=TAX["bracken_read_length"],
+        rank=TAX["bracken_rank"],
+        threshold=TAX["bracken_threshold"],
+    log:
+        f"{P['log_root']}/{{sample}}/bracken_genus.log",
+    benchmark:
+        f"{P['benchmark_root']}/{{sample}}/bracken_genus.tsv",
+    shell:
+        r"""
+        bracken -d {params.database} -i {input.report} -o {output.abundance} \
+          -r {params.read_length} -l {params.rank} -t {params.threshold} \
+          > {log} 2>&1
+        """
+
+
+rule validate_bracken:
+    input:
+        abundance=rules.bracken_genus.output.abundance,
+        report=rules.bracken_genus.output.report,
+        kraken_valid=rules.validate_kraken2.output,
+    output:
+        f"{P['validation_root']}/{{sample}}/bracken_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    log:
+        f"{P['log_root']}/{{sample}}/validate_bracken.log",
+    shell:
+        """
+        {params.python} {params.validator} bracken \
+          --abundance {input.abundance} --report {input.report} --output {output} > {log} 2>&1
+        """
+
+
+rule validate_ck1_manual:
+    input:
+        provenance="docs/raw_read_provenance.tsv",
+        r1="data/interim/ck1_nonhost/SRR36739085_1.nonhost.fastq.gz",
+        r2="data/interim/ck1_nonhost/SRR36739085_2.nonhost.fastq.gz",
+        kraken_log="logs/raw-read-pilot/CK1_pluspf8_c0.kraken2.log",
+        kraken_report="results/taxonomy/raw-read-pilot/CK1_pluspf8_c0.report",
+        bracken="results/taxonomy/raw-read-pilot/CK1_pluspf8_c0_genus.bracken",
+        metrics="CK1_comparison/comparison_metrics.json",
+    output:
+        f"{P['validation_root']}/CK-1/manual_checkpoint_validation.tsv",
+    params:
+        python=ORCHESTRATION_PYTHON,
+        validator=VALIDATOR,
+    log:
+        f"{P['log_root']}/CK-1/validate_manual_checkpoint.log",
+    shell:
+        """
+        mkdir -p $(dirname {output})
+        {params.python} {params.validator} ck1 \
+          --provenance {input.provenance} --r1 {input.r1} --r2 {input.r2} \
+          --kraken-log {input.kraken_log} --kraken-report {input.kraken_report} \
+          --bracken {input.bracken} --metrics {input.metrics} --output {output} > {log} 2>&1
+        """
