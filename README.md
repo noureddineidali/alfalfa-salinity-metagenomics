@@ -51,3 +51,11 @@ See the [workflow guide](workflow/README.md) for setup, available samples and va
 The R scripts in [`analysis/`](analysis/) and validated matrices in [`data/processed/`](data/processed/) support Report 1. Report 2's [taxonomic comparison package](analysis/raw_read_comparison/README.md), [Snakemake workflow](workflow/README.md) and [`results/`](results/) retain its comparison, execution and validation records. Sample accessions are listed in the [manifest](data/metadata/sample_manifest.tsv).
 
 The source material is **root-zone soil**, not a separately isolated rhizosphere fraction. Report 1 has three samples per treatment; Report 2 reconstructs one sample per condition and does not establish a salinity treatment effect. Published abundance units and some nitrogen-function mappings remain unresolved, and most non-host fragments were unclassified with PlusPF-8. See the [dataset audit](docs/dataset_reconnaissance.md), [supplementary-data audit](docs/supplementary_data_audit.md), [processed-data validation](docs/processed_data_validation.md) and [nitrogen mapping audit](docs/nitrogen_mapping_audit.md).
+
+## Acknowledgments
+
+We thank Lv et al. (2026) for making their sequencing data and supplementary datasets publicly available, enabling independent reanalysis and methodological comparison. The original study and associated datasets are acknowledged and cited throughout this repository.
+
+## License and data attribution
+
+The original code in this repository is released under the [MIT License](LICENSE). Publicly available sequencing data, third-party datasets, and external software remain subject to their respective terms and are not relicensed by this repository.
